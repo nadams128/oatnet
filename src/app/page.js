@@ -2,38 +2,83 @@
 import { useState } from 'react';
 
 function Inventory({setSelected}){
+  const [serverData, setServerData] = useState([])
+  const [searchQuery, setSearchQuery] = useState("")
+  const [needAmount, setNeedAmount] = useState("")
+  const [haveAmount, setHaveAmount] = useState("")
   return(
     <div className="flex flex-col">
-      <div className='mx-10'>
-        <input id="searchBox" className="bg-oatnet-light w-full rounded-lg" placeholder='Search' list="searchResults" onChange={ e => {
+      <div className=''>
+        <input id="searchBox" className="mx-2 w-64 bg-oatnet-light rounded-lg" placeholder='Search' list="searchResults" onKeyUp={ e => {
           //client submits a GET request with e.target.value.toString() and receive the list of items that match the search
           //after GET, display results using a searchbox with a scrollable dropdown
-          //when a dropdown item is pressed, find that value and refresj the quantity controls with that value
+          //when a dropdown item is pressed, find that value and refresh the quantity controls with that value
           //the user's current typed text will always be the first option, if they select it with no matching result, a new item is queued for creation
           //changes that the user is making to the items they're searching will accumulate and be POSTed/UPDATEd on Submit button press
+          setSearchQuery(e.target.value)
+          let matchFound = false
+          if(e.target.value != ""){
+            console.log("im not even trying to work LOLLLL")
+            getInventory((e.target.value).replace(" ", "-").toLowerCase()).then((response) => {
+              console.log(response)
+              setServerData(response)
+              response.map((row) => {
+                if(row[1]==e.target.value){
+                  console.log("Attempting field set to typed value")
+                  matchFound = true
+                  setHaveAmount(row[2])
+                  setNeedAmount(row[3])
+                }
+              })
+            })
+            if(serverData.length < 1 || !matchFound){
+              setHaveAmount("")
+              setNeedAmount("")
+            }
+          }
         }}/>
         {/* Datalist will be populated with search results based on the text in the input */}
         <datalist id="searchResults">
-          {/* Placeholder Data */}
-          <option>Salt</option>
-          <option>Seasoned Salt</option>
-          <option>Sharpies</option>
-          <option>Socks</option>
-          <option>Sugar</option>
+          {serverData.map((row) => {
+            return <option key={row[1]}>{row[1]}</option>
+          })}
         </datalist>
       </div>
-      <div className="mt-4 mx-10 w-full">
-        <input id="quantityBox" className="bg-oatnet-light rounded-lg" placeholder='100g'/>
-        <button className="ml-5 px-4 py-2 bg-oatnet-light rounded-lg">+</button>
-        <button className="ml-2 px-4 py-2 bg-oatnet-light rounded-lg">-</button>
+      <div className="mt-5 mx-2">
+        <input id="haveBox" className="w-40 pl-1 bg-oatnet-light rounded-lg" placeholder='Have' value={haveAmount} onChange={e => {
+          setHaveAmount(e.target.value)
+        }}/>
+        <button className="ml-2 px-4 py-2 bg-oatnet-light rounded-lg" onClick={()=>{
+          if(haveAmount != ""){
+            setHaveAmount((parseInt(haveAmount)+1).toString())
+          }
+        }}>+</button>
+        <button className="ml-2 px-4 py-2 bg-oatnet-light rounded-lg" onClick={()=>{
+          if(haveAmount != ""){
+            setHaveAmount((parseInt(haveAmount)-1).toString())
+          }
+        }}>-</button>
         {/* additonal item quantity input box, plus, and minus controls*/}
       </div>
-      <button className="mt-5 mx-20 bg-oatnet-light rounded-lg" onClick={() => {
-        setSelected(null)
-        setSearchQuery("");
-        //reset variables
-        //slide quantity controls off the screen to the right
-        //send UPDATE request to backend
+      <div className="mt-2 ml-2">
+        <input id="haveBox" className="w-40 pl-1 bg-oatnet-light rounded-lg" placeholder='Need' value={needAmount} onChange={ e =>{
+          setNeedAmount(e.target.value)
+        }}/>
+        <button className="ml-2 px-4 py-2 bg-oatnet-light rounded-lg" onClick={()=>{
+          if(needAmount != ""){
+            setNeedAmount((parseInt(needAmount)+1).toString())
+          }
+        }}>+</button>
+        <button className="ml-2 px-4 py-2 bg-oatnet-light rounded-lg" onClick={()=>{
+          if(needAmount != ""){
+            setNeedAmount((parseInt(needAmount)-1).toString())
+          }
+        }}>-</button>
+        {/* additonal item quantity input box, plus, and minus controls*/}
+      </div>
+      <button className="mt-5 ml-2 w-40 h-8 bg-oatnet-light rounded-lg" onClick={() => {
+        console.log([searchQuery, haveAmount, needAmount])
+        postInventory([searchQuery, haveAmount, needAmount])
       }}>Submit</button>
     </div>
   )
@@ -70,4 +115,23 @@ export default function Home() {
       {selected}
     </div>
   )
+}
+
+async function getInventory(item){
+  console.log("http://127.0.0.1:5000/inventory/" + item)
+  const serverResponse = await fetch("http://127.0.0.1:5000/inventory/" + item)
+  let response = serverResponse.json()
+  return response
+}
+
+async function postInventory(itemData){
+  const serverResponse = await fetch("http://127.0.0.1:5000/inventory", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(itemData),
+  })
+  let response = serverResponse.json()
+  console.log(response)
 }
