@@ -13,9 +13,8 @@ def getInventory(item):
     cursor = inv.cursor()
     responseList = []
     if (item != ""):
-        serverData = cursor.execute("SELECT * from inventory WHERE id LIKE '%"+item+"%'").fetchall()
+        serverData = cursor.execute("SELECT * from inventory WHERE id LIKE '%"+item.lower()+"%'").fetchall()
         print("SELECT * from inventory WHERE id LIKE '"+item+"'")
-        
         print(serverData)
         for row in serverData:
             responseList.append([row[0],row[1],row[2],row[3],row[4],row[5]])
