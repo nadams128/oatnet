@@ -19,11 +19,11 @@ function Inventory({setSelected}){
           let matchFound = false
           if(e.target.value != ""){
             console.log("im not even trying to work LOLLLL")
-            getInventory((e.target.value).replace(" ", "-").toLowerCase()).then((response) => {
+            getInventory((e.target.value).replaceAll(" ", "-").toLowerCase()).then((response) => {
               console.log(response)
               setServerData(response)
               response.map((row) => {
-                if(row[1]==e.target.value){
+                if(row[1].toLowerCase()==e.target.value.toLowerCase()){
                   console.log("Attempting field set to typed value")
                   matchFound = true
                   setHaveAmount(row[2])
