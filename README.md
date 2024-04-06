@@ -1,36 +1,17 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+## Oatnet
 
-## Getting Started
+Oatnet is an in-development utility application for Food Not Bombs Boston
 
-First, run the development server:
+## Right now Oatnet + Oatnet-Server can:
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Push and pull inventory items based on user input
+Set the have and need values for each item, as well as increment and decrement the values with buttons
+Use user input to suggest items
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## In the future, Oatnet + Oatnet-Server should:
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+Support a variety of units through a dropdown box
+Print a formatted table of everything in the database
+Convert between units when different units are selected
+Have a responsive UI that adapts to various screen sizes
+Allow the user to open a panel to configure extra parameters for items, such as type, location, needed per week, etc.
