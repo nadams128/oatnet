@@ -14,11 +14,8 @@ def getInventory(item):
     responseList = []
     if (item != ""):
         serverData = cursor.execute("SELECT * from inventory WHERE id LIKE '%"+item.lower()+"%'").fetchall()
-        print("SELECT * from inventory WHERE id LIKE '"+item+"'")
-        print(serverData)
         for row in serverData:
             responseList.append([row[0],row[1],row[2],row[3],row[4],row[5]])
-            print([row[0],row[1],row[2],row[3],row[4],row[5]])
     response = jsonify(responseList)
     response.headers.add("Access-Control-Allow-Origin", domain)
     return response
@@ -35,17 +32,14 @@ def postInventory():
     elif request.method == "POST":
         inv = db.connect_db()
         cursor = inv.cursor()
-        print(request.json)
         try:
-            print(cursor.execute("SELECT * from inventory WHERE id = '"+(request.json[0].replace(" ","-")).lower()+"'").fetchone())
             if(cursor.execute("SELECT * from inventory WHERE id = '"+(request.json[0].replace(" ","-")).lower()+"'").fetchone()):
                 cursor.execute("UPDATE inventory SET have ='"+request.json[1]+"', need ='"+ request.json[2] +"' WHERE id='"+(request.json[0].replace(" ","-")).lower()+"'")
             else:
-                cursor.execute("INSERT INTO inventory(id, name, have, need, type, avgprice) VALUES ('"+((request.json[0].replace(" ","-")).lower())+"','"+request.json[0]+"','"+request.json[1]+"','"+request.json[2]+"','none','0.00')")
+                cursor.execute("INSERT INTO inventory(id, name, have, need, type, avgprice) VALUES ('"+((request.json[0].replace(" ","-")).lower())+"','"+request.json[0].title()+"','"+request.json[1]+"','"+request.json[2]+"','none','0.00')")
             response = jsonify("Data entry successful!")
         except:
             response = jsonify("Data entry failed!")
         inv.commit()
         response.headers.add("Access-Control-Allow-Origin", domain)
-        print(request.json)
         return response
