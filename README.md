@@ -10,8 +10,9 @@ Use user input to suggest items
 
 ## In the future, Oatnet + Oatnet-Server should:
 
-Support a variety of units through a dropdown box  
+Tag an item to check weekly, get a report of all needed items  
 Print a formatted table of everything in the database  
+Support a variety of units through a dropdown box  
 Convert between units when different units are selected  
 Have a responsive UI that adapts to various screen sizes  
 Allow the user to open a panel to configure extra parameters for items, such as type, location, needed per week, etc.  
