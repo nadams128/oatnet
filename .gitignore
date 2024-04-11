@@ -1,1 +1,3 @@
 instance/oatnet-server.sqlite
+oatnet-server/__pycache__/db.cpython-310.pyc
+oatnet-server/__pycache__/inventory.cpython-310.pyc

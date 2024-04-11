@@ -5,6 +5,8 @@ CREATE TABLE inventory(
     name TEXT UNIQUE NOT NULL,
     have TEXT NOT NULL,
     need TEXT NOT NULL,
+    checkweekly TEXT NOT NULL,
+    amountneededweekly TEXT NOT NULL,
     type TEXT NOT NULL,
-    avgprice TEXT NOT NULL
+    location TEXT NOT NULL
 );
