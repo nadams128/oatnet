@@ -12,7 +12,12 @@ def getInventory(item):
     inv = db.connect_db()
     cursor = inv.cursor()
     responseList = []
-    if (item != ""):
+    if (item == "check-weekly"):
+        print("I think the weekly items are being requested")
+        serverData = cursor.execute("SELECT * from inventory WHERE checkweekly='true'").fetchall()
+        for row in serverData:
+            responseList.append([row[0],row[1],row[2],row[3],row[4],row[5]])
+    elif (item != ""):
         print("I think there's an item being requested")
         serverData = cursor.execute("SELECT * from inventory WHERE id LIKE '%"+item.lower()+"%'").fetchall()
         for row in serverData:
