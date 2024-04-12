@@ -14,6 +14,20 @@ export function Report() {
 
   return(
     <div className="flex flex-col">
+      <div>
+        <button className="mt-5 ml-2 w-40 h-8 bg-oatnet-light rounded-lg" onClick={() => {
+          getInventory("").then((response) => {
+            setServerData(response)
+            console.log(response)
+          })
+        }}>All</button>
+        <button className="mt-5 ml-2 w-40 h-8 bg-oatnet-light rounded-lg" onClick={() => {
+          getInventory("check-weekly").then((response) => {
+            setServerData(response)
+            console.log(response)
+          })
+        }}>Weekly</button>
+      </div>
       <div className="mt-5 mx-2">
         {serverData.map(
           (row) => {
