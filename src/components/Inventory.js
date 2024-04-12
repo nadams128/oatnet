@@ -104,7 +104,7 @@ export function Inventory() {
         }}>-</button>
       </div>
       <div className="mt-2 ml-2">
-        Needed Weekly?:
+        Check Weekly?:
         <input className="ml-2 bg-oatnet-light rounded-lg" type='checkbox' checked={checkWeekly} onChange={e => {
           setCheckWeekly(e.target.checked)
         }}/>
