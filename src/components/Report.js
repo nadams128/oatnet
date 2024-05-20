@@ -1,33 +1,36 @@
 "use client";
 import { useEffect, useState } from 'react';
-import {getInventory, postInventory} from "./Inventory";
+import {getInventory} from "./Inventory";
 
+// Component to see the status of the inventory as a whole, with a set of filters
 export function Report() {
   const [serverData, setServerData] = useState([])
 
   useEffect(() => {
     getInventory("").then((response) => {
       setServerData(response)
-      console.log(response)
     })
   },[])
 
   return(
     <div className="flex flex-col">
       <div>
+        {/* Button to set the filter to all items */}
         <button className="mt-5 ml-2 w-40 h-8 bg-oatnet-light rounded-lg" onClick={() => {
           getInventory("").then((response) => {
             setServerData(response)
-            console.log(response)
           })
         }}>All</button>
+
+        {/* Button to set the filter to just the weekly items */}
         <button className="mt-5 ml-2 w-40 h-8 bg-oatnet-light rounded-lg" onClick={() => {
           getInventory("check-weekly").then((response) => {
             setServerData(response)
-            console.log(response)
           })
         }}>Weekly</button>
       </div>
+
+      {/* Current implementation of a "table" to display data */}
       <div className="mt-5 mx-2">
         {serverData.map(
           (row) => {
@@ -40,10 +43,11 @@ export function Report() {
           })
         }
       </div>
+
+      {/* Button to refresh the displayed data with new changes from backend */}
       <button className="mt-5 ml-2 w-40 h-8 bg-oatnet-light rounded-lg" onClick={() => {
         getInventory("").then((response) => {
           setServerData(response)
-          console.log(response)
         })
       }}>Refresh</button>
     </div>
