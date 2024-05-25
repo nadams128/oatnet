@@ -15,6 +15,7 @@ module.exports = {
       colors: {
         'oatnet-background': 'rgb(38, 35, 90)',
         'oatnet-light': 'rgb(60, 55, 143)',
+        'oatnet-dark': 'rgb(26, 24, 64)',
       },
       fontFamily: {
         'rubik': ['Rubik Mono One', 'sans-serif'],
