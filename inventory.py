@@ -6,6 +6,25 @@ bp = Blueprint('inventory', __name__)
 
 domain = "*"
 
+# handle incoming delete requests for specific items
+@bp.route("/inventory/<string:item>", methods=["OPTIONS", "DELETE"])
+def deleteInventory(item):
+    if request.method == "OPTIONS":
+        response = make_response()
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        response.headers.add("Access-Control-Allow-Headers", "Content-Type")
+        response.headers.add("Access-Control-Allow-Methods", "OPTIONS, DELETE")
+        return response
+    elif request.method == "DELETE":
+        inv = db.connect_db()
+        cursor = inv.cursor()
+        if (item != ""):
+            cursor.execute("DELETE from inventory WHERE id = '"+item.lower()+"'")
+        inv.commit()
+        response = make_response()
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        return response
+
 # handle incoming get requests for specific items
 @bp.route("/inventory/<string:item>", methods=["GET"])
 def getInventory(item):
@@ -13,12 +32,10 @@ def getInventory(item):
     cursor = inv.cursor()
     responseList = []
     if (item == "check-weekly"):
-        print("I think the weekly items are being requested")
         serverData = cursor.execute("SELECT * from inventory WHERE checkweekly='true'").fetchall()
         for row in serverData:
             responseList.append([row[0],row[1],row[2],row[3],row[4],row[5]])
     elif (item != ""):
-        print("I think there's an item being requested")
         serverData = cursor.execute("SELECT * from inventory WHERE id LIKE '%"+item.lower()+"%'").fetchall()
         for row in serverData:
             responseList.append([row[0],row[1],row[2],row[3],row[4],row[5]])
@@ -34,7 +51,7 @@ def postInventory():
         response = make_response()
         response.headers.add("Access-Control-Allow-Origin", domain)
         response.headers.add("Access-Control-Allow-Headers", "Content-Type")
-        response.headers.add("Access-Control-Allow-Methods", "OPTIONS")
+        response.headers.add("Access-Control-Allow-Methods", "OPTIONS, POST")
         return response
     elif request.method == "POST":
         inv = db.connect_db()
@@ -57,7 +74,6 @@ def getAllInventory():
     inv = db.connect_db()
     cursor = inv.cursor()
     responseList = []
-    print("I think all items are being requested")
     serverData = cursor.execute("SELECT * from inventory").fetchall()
     for row in serverData:
         responseList.append([row[0],row[1],row[2],row[3],row[4],row[5]])
