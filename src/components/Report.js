@@ -34,12 +34,12 @@ export function Report() {
       <div className="mt-5 mx-2">
         {serverData.map(
           (row) => {
-            let neededWeekly = ""
+            let checkWeekly = ""
             if(row[4] === "true")
-              neededWeekly="Yes"
+              checkWeekly="Yes"
             else
-              neededWeekly="No"
-            return(<div key={row[1]}>{row[1]} | Need: {row[2]} | Have: {row[3]} | Need Weekly?: {neededWeekly} </div>)
+              checkWeekly="No"
+            return(<div key={row[1]}>{row[1]} | Need: {row[2]} | Have: {row[3]} | Check Weekly?: {checkWeekly} </div>)
           })
         }
       </div>

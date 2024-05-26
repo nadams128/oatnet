@@ -40,7 +40,7 @@ export default function Home() {
       }
       <div className="flex justify-center font-rubik text-3xl">OatNet</div>
       {/* Variable which contains the currently selected component */}
-      {selected}
+      {selected ? selected : <Inventory/>}
     </div>
   )
 }

@@ -14,12 +14,19 @@ export async function getInventory(item){
 
 // Send the current new/updated item to the backend for storage
 export async function postInventory(itemData){
-  const serverResponse = await fetch("http://127.0.0.1:5000/inventory", {
+  await fetch("http://127.0.0.1:5000/inventory", {
       method: "POST",
       headers: {
       "Content-Type": "application/json"
       },
       body: JSON.stringify(itemData),
+  })
+}
+
+// Delete the current new/updated item from storage
+export async function deleteInventory(item){
+  await fetch("http://127.0.0.1:5000/inventory/" + item, {
+      method: "DELETE"
   })
 }
 
@@ -51,7 +58,7 @@ export function Inventory() {
     <div className="flex flex-col">
       <div className=''>
         {/* Search box for items */}
-        <input id="searchBox" className="mx-2 w-64 pl-1 bg-oatnet-light rounded-lg" placeholder='Search' list="searchResults" autoComplete="off" onChange={ e => {
+        <input id="searchBox" className="mx-2 w-64 pl-1 bg-oatnet-light rounded-lg" placeholder='Search' value={searchQuery} list="searchResults" autoComplete="off" onChange={ e => {
           setSearchQuery(e.target.value)
           let matchFound = false
           if(e.target.value != ""){
@@ -116,7 +123,13 @@ export function Inventory() {
           </div>
           {/* Button to submit data to the backend */}
           <button className="w-32 h-8 ml-6 mb-1 bg-red-600 rounded-lg" onClick={() => {
-              // Code for delete function will be here
+              if(searchQuery != ""){
+                deleteInventory((searchQuery).replaceAll(" ", "-").toLowerCase())
+              }
+              setHaveAmount("")
+              setNeedAmount("")
+              setCheckWeekly(false)
+              setSearchQuery("")
             }}>Delete
           </button>
         </div>
@@ -126,7 +139,13 @@ export function Inventory() {
 
       {/* Button to submit data to the backend */}
       <button className="mt-5 ml-2 w-40 h-8 bg-oatnet-light rounded-lg" onClick={() => {
-        postInventory([searchQuery, haveAmount, needAmount, checkWeekly.toString()])
+        if(searchQuery != ""){
+          postInventory([searchQuery, haveAmount, needAmount, checkWeekly.toString()])
+        }
+        setHaveAmount("")
+        setNeedAmount("")
+        setCheckWeekly(false)
+        setSearchQuery("")
       }}>Submit</button>
     </div>
   )
