@@ -140,6 +140,9 @@ export function Inventory({selectedItem, setSelected}) {
               if(searchQuery != ""){
                 deleteInventory((searchQuery).replaceAll(" ", "-").toLowerCase())
               }
+              if(selectedItem){
+                setSelected(<Report setSelected = {(component) => setSelected(component)}/>)
+              }
               setHaveAmount("")
               setNeedAmount("")
               setCheckWeekly(false)
