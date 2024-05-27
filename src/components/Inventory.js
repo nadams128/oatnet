@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from 'react';
+import {Report} from '../components/Report';
 
 // Get details of an item from the backend, if no item is specified, return all items
 export async function getInventory(item){
@@ -31,14 +32,41 @@ export async function deleteInventory(item){
 }
 
 // Component to manage the inventory
-export function Inventory() {
+export function Inventory({selectedItem, setSelected}) {
   const [serverData, setServerData] = useState([])
   const [searchQuery, setSearchQuery] = useState("")
   const [needAmount, setNeedAmount] = useState("")
   const [haveAmount, setHaveAmount] = useState("")
   const [checkWeekly, setCheckWeekly] = useState("")
   const [settingsPanelOpen, setSettingsPanelOpen] = useState(false)
+  const [searchSuggestionsEnabled, setSearchSuggestionsEnabled] = useState(true)
 
+  // Take an item, get it's data from the server, and update the inputs with the resulting data
+  function updateInputs(item) {
+    setSearchQuery(item)
+        getInventory((item).replaceAll(" ", "-").toLowerCase()).then((response) => {
+          if (response.length == 1 && response[0][1].toLowerCase() == item.toLowerCase()){
+            setSearchSuggestionsEnabled(false)
+          }
+          setServerData(response)
+          response.map((row) => {
+            if(row[1].toLowerCase()==item.toLowerCase()){
+              setHaveAmount(row[2])
+              setNeedAmount(row[3])
+              setCheckWeekly(row[4] === 'true')
+            }
+          })
+        })
+  }
+
+  // If an item has already been selected on Report, load that item's data into the inputs
+  useEffect(() => {
+    if(selectedItem){
+      updateInputs(selectedItem)
+    }
+  }, [])
+
+  // Keep inputs empty unless a full item name is typed into the search input
   useEffect(() => {
     if(serverData[0]){
       if(serverData[0][1].toLowerCase() !== searchQuery.toLowerCase()){
@@ -59,28 +87,15 @@ export function Inventory() {
       <div className=''>
         {/* Search box for items */}
         <input id="searchBox" className="mx-2 w-64 pl-1 bg-oatnet-light rounded-lg" placeholder='Search' value={searchQuery} list="searchResults" autoComplete="off" onChange={ e => {
-          setSearchQuery(e.target.value)
-          let matchFound = false
-          if(e.target.value != ""){
-            getInventory((e.target.value).replaceAll(" ", "-").toLowerCase()).then((response) => {
-              setServerData(response)
-              response.map((row) => {
-                if(row[1].toLowerCase()==e.target.value.toLowerCase()){
-                  matchFound = true
-                  setHaveAmount(row[2])
-                  setNeedAmount(row[3])
-                  setCheckWeekly(row[4] === 'true')
-                }
-              })
-            })
-          }
+          setSearchSuggestionsEnabled(true)
+          updateInputs(e.target.value)
         }}/>
         {/* Datalist is populated with search results based on the text in the input */}
-        <datalist id="searchResults">
+        {searchSuggestionsEnabled && <datalist id="searchResults">
           {serverData.map((row) => {
             return <option key={row[1]}>{row[1]}</option>
           })}
-        </datalist>
+        </datalist>}
       </div>
 
       {/* Text input for the have property */}
@@ -106,7 +121,6 @@ export function Inventory() {
         }}>
           {settingsPanelOpen ? "-": "+"}
         </button> 
-        
         <div className="inline-block">
           <div className='mr-1 inline-block'>Settings:</div>
           {!settingsPanelOpen && <div className="w-32 h-1 mb-1 bg-white rounded-lg inline-block"></div>}
@@ -139,14 +153,17 @@ export function Inventory() {
 
       {/* Button to submit data to the backend */}
       <button className="mt-5 ml-2 w-40 h-8 bg-oatnet-light rounded-lg" onClick={() => {
-        if(searchQuery != ""){
+        if(searchQuery != "" && haveAmount != "" && needAmount != ""){
           postInventory([searchQuery, haveAmount, needAmount, checkWeekly.toString()])
+        }
+        if(selectedItem){
+          setSelected(<Report setSelected = {(component) => setSelected(component)}/>)
         }
         setHaveAmount("")
         setNeedAmount("")
         setCheckWeekly(false)
         setSearchQuery("")
-      }}>Submit</button>
+      }}>{selectedItem ? "Update":"Submit"}</button>
     </div>
   )
 }
