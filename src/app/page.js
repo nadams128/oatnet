@@ -36,11 +36,11 @@ export default function Home() {
 
           {/* Divider */}
           <div className="flex flex-wrap:nowrap justify-center select-none">
-            ------------------------------
+            ----------------------------
           </div>
         </div>
       }
-      <div className="flex justify-center font-rubik text-3xl select-none">OatNet</div>
+      <div className={(selected ? "flex justify-center font-rubik select-none text-2xl mb-4" : "flex justify-center font-rubik select-none text-3xl mb-6")}>OatNet</div>
       {/* Variable which contains the currently selected component */}
       {selected ? selected : <Inventory/>}
     </div>

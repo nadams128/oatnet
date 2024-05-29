@@ -15,7 +15,7 @@ export function Report({setSelected}) {
   return(
     <div className="flex flex-col">
       {/* Button to refresh the displayed data with new changes from backend */}
-      <button className="mt-5 ml-2 w-32 h-8 bg-oatnet-light rounded-lg select-none" onClick={() => {
+      <button className="mt-2 ml-2 w-32 h-8 bg-oatnet-light rounded-lg select-none" onClick={() => {
         getInventory("").then((response) => {
           setServerData(response)
         })

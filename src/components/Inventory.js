@@ -83,10 +83,10 @@ export function Inventory({selectedItem, setSelected}) {
   },[serverData])
 
   return(
-    <div className="flex flex-col">
+    <div className="flex flex-col items-center mt-2 select-none">
       <div className=''>
         {/* Search box for items */}
-        <input id="searchBox" className="mx-2 w-64 pl-1 bg-oatnet-light rounded-lg" placeholder='Search' value={searchQuery} list="searchResults" autoComplete="off" onChange={ e => {
+        <input id="searchBox" className="w-72 pl-1 bg-oatnet-light rounded-lg" placeholder='Search' value={searchQuery} list="searchResults" autoComplete="off" onChange={ e => {
           setSearchSuggestionsEnabled(true)
           updateInputs(e.target.value)
         }}/>
@@ -99,7 +99,7 @@ export function Inventory({selectedItem, setSelected}) {
       </div>
 
       {/* Text input for the have property */}
-      <div className="mt-5 mx-2">
+      <div className="mt-6">
         <div className="w-12 float-left">Have: </div>
         <input id="haveBox" className="w-48 pl-1 bg-oatnet-light rounded-lg" placeholder='Have' value={haveAmount} autoComplete="off" onChange={e => {
           setHaveAmount(e.target.value)
@@ -107,36 +107,54 @@ export function Inventory({selectedItem, setSelected}) {
       </div>
 
       {/* Text input for the need property */}
-      <div className="mt-4 ml-2">
+      <div className="mt-4">
         <div className="w-12 float-left">Need: </div>
         <input id="needBox" className="w-48 pl-1 bg-oatnet-light rounded-lg" placeholder='Need' value={needAmount} autoComplete="off" onChange={ e =>{
           setNeedAmount(e.target.value)
         }}/>
       </div>
 
+      {/* Button to submit data to the backend */}
+      <button className="mt-6 ml-2 w-40 h-8 bg-oatnet-light rounded-lg" onClick={() => {
+        if(searchQuery != "" && haveAmount != "" && needAmount != ""){
+          postInventory([searchQuery, haveAmount, needAmount, checkWeekly.toString()])
+        }
+        if(selectedItem){
+          setSelected(<Report setSelected = {(component) => setSelected(component)}/>)
+        }
+        setHaveAmount("")
+        setNeedAmount("")
+        setCheckWeekly(false)
+        setSearchQuery("")
+      }}>{selectedItem ? "Update":"Submit"}</button>
+
       {/* Collapsible panel for settings */}
-      <div className={settingsPanelOpen ? "w-64 mt-3 pb-1 border-solid border-4 border-white rounded-lg" : "w-64 mt-4 ml-1"}>
-        <button className="w-9 ml-2 mt-1 mr-2 px-3 py-1 rounded-lg bg-oatnet-light inline-block" onClick={() => {
+      <div className={settingsPanelOpen ? "w-72 mt-3 border-solid border-4 border-white rounded-lg pl-1" : "w-72 mt-4 pl-2"}>
+        <button className="w-9 mt-1 mr-2 px-3 py-1 rounded-lg bg-oatnet-light inline-block" onClick={() => {
           setSettingsPanelOpen(!settingsPanelOpen)
         }}>
           {settingsPanelOpen ? "-": "+"}
         </button> 
         <div className="inline-block">
           <div className='mr-1 inline-block'>Settings:</div>
-          {!settingsPanelOpen && <div className="w-32 h-1 mb-1 bg-white rounded-lg inline-block"></div>}
+          {!settingsPanelOpen && <div className="w-36 h-1 mb-1 bg-white rounded-lg inline-block"></div>}
         </div>
 
         {settingsPanelOpen &&
           <div className="w-60 rounded-lg">
           {/* Checkbox to mark an item as one to check the status of weekly */}
-          <div className="mt-2 ml-2 mb-1 pl-4">
-            Check Weekly?:
-            <input className="ml-2 bg-oatnet-light rounded-lg" type='checkbox' checked={checkWeekly} onChange={e => {
-              setCheckWeekly(e.target.checked)
-            }}/>
+          <div className='flex items-center'>
+            <div className="mt-2 ml-1 mb-2">
+              Check Weekly?:
+            </div>
+            <div className="w-5 h-5 ml-2 bg-oatnet-light rounded-md flex items-center justify-center" onClick={() => {
+                setCheckWeekly(!checkWeekly)
+            }}>
+                {checkWeekly ? "✔" : ""}
+            </div>
           </div>
           {/* Button to submit data to the backend */}
-          <button className="w-32 h-8 ml-6 mb-1 bg-red-600 rounded-lg" onClick={() => {
+          <button className="w-32 h-8 ml-1 mb-2 bg-red-600 rounded-lg" onClick={() => {
               if(searchQuery != ""){
                 deleteInventory((searchQuery).replaceAll(" ", "-").toLowerCase())
               }
@@ -152,21 +170,6 @@ export function Inventory({selectedItem, setSelected}) {
         </div>
         }
       </div>
-      
-
-      {/* Button to submit data to the backend */}
-      <button className="mt-5 ml-2 w-40 h-8 bg-oatnet-light rounded-lg" onClick={() => {
-        if(searchQuery != "" && haveAmount != "" && needAmount != ""){
-          postInventory([searchQuery, haveAmount, needAmount, checkWeekly.toString()])
-        }
-        if(selectedItem){
-          setSelected(<Report setSelected = {(component) => setSelected(component)}/>)
-        }
-        setHaveAmount("")
-        setNeedAmount("")
-        setCheckWeekly(false)
-        setSearchQuery("")
-      }}>{selectedItem ? "Update":"Submit"}</button>
     </div>
   )
 }
