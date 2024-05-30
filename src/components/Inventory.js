@@ -2,20 +2,22 @@
 import { useEffect, useState } from 'react';
 import {Report} from '../components/Report';
 
+let serverDomain = "http://127.0.0.1:5000"
+
 // Get details of an item from the backend, if no item is specified, return all items
 export async function getInventory(item){
     let serverResponse
     if (item === "")
-        serverResponse = await fetch("http://127.0.0.1:5000/inventory")
+        serverResponse = await fetch(serverDomain+"/inventory")
     else
-        serverResponse = await fetch("http://127.0.0.1:5000/inventory/" + item)
+        serverResponse = await fetch(serverDomain+"/inventory/" + item)
     let response = serverResponse.json()
     return response
   }
 
 // Send the current new/updated item to the backend for storage
 export async function postInventory(itemData){
-  await fetch("http://127.0.0.1:5000/inventory", {
+  await fetch(serverDomain+"/inventory", {
       method: "POST",
       headers: {
       "Content-Type": "application/json"
@@ -26,13 +28,13 @@ export async function postInventory(itemData){
 
 // Delete the current new/updated item from storage
 export async function deleteInventory(item){
-  await fetch("http://127.0.0.1:5000/inventory/" + item, {
+  await fetch(serverDomain+"/inventory/" + item, {
       method: "DELETE"
   })
 }
 
 // Component to manage the inventory
-export function Inventory({selectedItem, setSelected}) {
+export function Inventory({selectedItem, setSelected, reportRequest}) {
   const [serverData, setServerData] = useState([])
   const [searchQuery, setSearchQuery] = useState("")
   const [needAmount, setNeedAmount] = useState("")
@@ -101,7 +103,7 @@ export function Inventory({selectedItem, setSelected}) {
       {/* Text input for the have property */}
       <div className="mt-6">
         <div className="w-12 float-left">Have: </div>
-        <input id="haveBox" className="w-48 pl-1 bg-oatnet-light rounded-lg" placeholder='Have' value={haveAmount} autoComplete="off" onChange={e => {
+        <input id="haveBox" className="w-48 pl-1 bg-oatnet-light rounded-lg" placeholder='6oz, 4 pairs, ?, etc.' value={haveAmount} autoComplete="off" onChange={e => {
           setHaveAmount(e.target.value)
         }}/>
       </div>
@@ -109,18 +111,20 @@ export function Inventory({selectedItem, setSelected}) {
       {/* Text input for the need property */}
       <div className="mt-4">
         <div className="w-12 float-left">Need: </div>
-        <input id="needBox" className="w-48 pl-1 bg-oatnet-light rounded-lg" placeholder='Need' value={needAmount} autoComplete="off" onChange={ e =>{
+        <input id="needBox" className="w-48 pl-1 bg-oatnet-light rounded-lg" placeholder='6oz, 4 pairs, ?, etc.' value={needAmount} autoComplete="off" onChange={ e =>{
           setNeedAmount(e.target.value)
         }}/>
       </div>
 
       {/* Button to submit data to the backend */}
       <button className="mt-6 ml-2 w-40 h-8 bg-oatnet-light rounded-lg" onClick={() => {
-        if(searchQuery != "" && haveAmount != "" && needAmount != ""){
+        if(searchQuery != "" && haveAmount != "" && needAmount != "" && !selectedItem){
           postInventory([searchQuery, haveAmount, needAmount, checkWeekly.toString()])
         }
-        if(selectedItem){
-          setSelected(<Report setSelected = {(component) => setSelected(component)}/>)
+        if(searchQuery != "" && haveAmount != "" && needAmount != "" && selectedItem){
+          postInventory([searchQuery, haveAmount, needAmount, checkWeekly.toString()]).then(()=>{
+            setSelected(<Report setSelected = {(component) => setSelected(component)} openReport={reportRequest}/>)
+          })
         }
         setHaveAmount("")
         setNeedAmount("")
@@ -154,12 +158,14 @@ export function Inventory({selectedItem, setSelected}) {
             </div>
           </div>
           {/* Button to submit data to the backend */}
-          <button className="w-32 h-8 ml-1 mb-2 bg-red-600 rounded-lg" onClick={() => {
-              if(searchQuery != ""){
-                deleteInventory((searchQuery).replaceAll(" ", "-").toLowerCase())
+          <button className="w-28 h-8 ml-1 mb-2 bg-red-600 rounded-lg" onClick={() => {
+              if(searchQuery != "" && !selectedItem){
+                deleteInventory((searchQuery).replaceAll(" ", "-").toLowerCase(), )
               }
-              if(selectedItem){
-                setSelected(<Report setSelected = {(component) => setSelected(component)}/>)
+              else if(searchQuery != "" && selectedItem){
+                deleteInventory((searchQuery).replaceAll(" ", "-").toLowerCase()).then(()=>{
+                  setSelected(<Report setSelected = {(component) => setSelected(component)} openReport={reportRequest}/>)
+                })
               }
               setHaveAmount("")
               setNeedAmount("")
