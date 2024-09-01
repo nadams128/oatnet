@@ -1,14 +1,13 @@
-"use client";
-import { useState } from 'react';
-import {Inventory} from '../components/Inventory';
-import {Report} from '../components/Report';
+import { useState } from 'react'
+import {
+  Link
+} from "react-router-dom";
 
-export default function Home() {
-  const [selected, setSelected] = useState()
+function App({children}:any) {
   const [showMenu, setShowMenu] = useState(false)
   return (
     <div className='w-full h-full bg-oatnet-background text-white p-px'>
-      {/* Hamburger menu button, constructed of div elements */}
+      {/* Hamburger menu button, constructed out of div elements */}
       <div onClick={() => {setShowMenu(!showMenu)}} className="w-fit h-fit">
         <div className="w-9 h-1 m-1 my-2 bg-white rounded-lg"></div>
         <div className="w-9 h-1 m-1 my-2 bg-white rounded-lg"></div>
@@ -18,20 +17,18 @@ export default function Home() {
       {/* Menu, shown/hidden by the menu button */}
       {showMenu && 
         <div className="flex flex-wrap:wrap flex-col select-none">
-          {/* Set displayed component to Inventory */}
+          {/* Set displayed component to Inventory via routing */}
           <div className="flex justify-center font-rubik text-lg" onClick={() => {
             setShowMenu(false)
-            setSelected(<Inventory/>)
           }}>
-            {"Inventory"}
+            <Link to="/inventory">Inventory</Link>
           </div>
 
-          {/* Set displayed component to Report */}
+          {/* Set displayed component to Report via routing */}
           <div className="flex justify-center font-rubik text-lg" onClick={() => {
             setShowMenu(false)
-            setSelected(<Report setSelected = {(component) => setSelected(component)}/>)
           }}>
-            {"Report"}
+            <Link to="/report">Report</Link>
           </div>
 
           {/* Divider */}
@@ -40,11 +37,12 @@ export default function Home() {
           </div>
         </div>
       }
-      <div className={(selected ? "flex justify-center font-rubik select-none text-2xl mb-4" : "flex justify-center font-rubik select-none text-3xl mb-6")}>OatNet</div>
-      {/* Variable which contains the currently selected component */}
-      {selected ? selected : <Inventory/>}
+      {/* Page title */}
+      <div className={("flex justify-center font-rubik select-none text-2xl mb-4")}>OatNet</div>
+      {/* Currently selected component is passed in as a child via routing */}
+      {children}
     </div>
   )
 }
 
-
+export default App
