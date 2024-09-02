@@ -1,3 +1,8 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@font-face{
+    font-family: "Rubik Mono One Regular";
+    src: url("/assets/RubikMonoOne-Regular.ttf");
+};

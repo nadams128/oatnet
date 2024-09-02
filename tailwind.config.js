@@ -17,7 +17,7 @@ export default {
         'oatnet-dark': 'rgb(26, 24, 64)',
       },
       fontFamily: {
-        'rubik': ['Rubik Mono One', 'sans-serif'],
+        'rubik': ['Rubik Mono One Regular', 'sans-serif'],
       }
     },
   },

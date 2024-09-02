@@ -38,7 +38,7 @@ function App({children}:any) {
         </div>
       }
       {/* Page title */}
-      <div className={("flex justify-center font-rubik select-none text-2xl mb-4")}>OatNet</div>
+      <div className={("flex justify-center font-rubik select-none text-2xl mb-4")}>Oatnet</div>
       {/* Currently selected component is passed in as a child via routing */}
       {children}
     </div>
