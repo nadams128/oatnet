@@ -1,6 +1,6 @@
 import os
 from flask import Flask
-from . import (db, inventory)
+from . import (database, inventory, auth)
 
 def create_app():
     # create app and configure it to connect to db
@@ -11,8 +11,8 @@ def create_app():
     )
     app.config.from_pyfile('config.py', silent=True)
     # set the app to disconnect on close, create CLI command to initialize db
-    app.teardown_appcontext(db.disconnect_db)
-    app.cli.add_command(db.init_db_command)
+    app.teardown_appcontext(database.disconnect_db)
+    app.cli.add_command(database.init_db_command)
 
     # creates the instance folder for the sqlite data, if it doesn't already exist
     try:
@@ -22,5 +22,6 @@ def create_app():
 
     # registration for app blueprint(s)
     app.register_blueprint(inventory.bp)
+    app.register_blueprint(auth.bp)
 
     return app
