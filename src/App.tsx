@@ -4,7 +4,8 @@ import {
 } from "react-router-dom";
 
 function App({children}:any) {
-  const [showMenu, setShowMenu] = useState(false)
+  const [showMenu, setShowMenu] = useState<boolean>(false)
+  const [currentPage, setCurrentPage] = useState<string>("Oatnet")
   return (
     <div className='w-full h-full bg-oatnet-background text-white p-px'>
       {/* Hamburger menu button, constructed out of div elements */}
@@ -20,6 +21,7 @@ function App({children}:any) {
           {/* Set displayed component to Inventory via routing */}
           <div className="flex justify-center font-rubik text-lg" onClick={() => {
             setShowMenu(false)
+            setCurrentPage("Inventory")
           }}>
             <Link to="/inventory">Inventory</Link>
           </div>
@@ -27,8 +29,25 @@ function App({children}:any) {
           {/* Set displayed component to Report via routing */}
           <div className="flex justify-center font-rubik text-lg" onClick={() => {
             setShowMenu(false)
+            setCurrentPage("Report")
           }}>
             <Link to="/report">Report</Link>
+          </div>
+
+          {/* Set displayed component to Login via routing */}
+          <div className="flex justify-center font-rubik text-lg" onClick={() => {
+            setShowMenu(false)
+            setCurrentPage("Login")
+          }}>
+            <Link to="/login">Login/Register</Link>
+          </div>
+
+          {/* Set displayed component to Admin via routing */}
+          <div className="flex justify-center font-rubik text-lg" onClick={() => {
+            setShowMenu(false)
+            setCurrentPage("Admin")
+          }}>
+            <Link to="/admin">Admin Panel</Link>
           </div>
 
           {/* Divider */}
@@ -38,7 +57,7 @@ function App({children}:any) {
         </div>
       }
       {/* Page title */}
-      <div className={("flex justify-center font-rubik select-none text-2xl mb-4")}>Oatnet</div>
+      <div className={("flex justify-center font-rubik select-none text-2xl mb-4")}>{currentPage}</div>
       {/* Currently selected component is passed in as a child via routing */}
       {children}
     </div>

@@ -8,29 +8,61 @@ let serverDomain = "http://127.0.0.1:5000"
 // Get details of an item from the backend, if either no item or the all filter are specified, return all items
 export async function getInventory(item: string){
     let serverResponse
-    if (item === "" || item === "all" || item === undefined)
-        serverResponse = await fetch(serverDomain+"/inventory")
-    else
-        serverResponse = await fetch(serverDomain+"/inventory?item="+item)
-    return serverResponse.json()
+    let sessionID = localStorage.getItem("sessionID")
+    if(sessionID){
+      if (item === "" || item === "all" || item === undefined)
+        serverResponse = await fetch(serverDomain+"/inv", {
+          method: "GET",
+          headers: {
+              "sessionID": sessionID
+          }
+      })
+      else
+          serverResponse = await fetch(serverDomain+"/inv?item="+item, {
+            method: "GET",
+            headers: {
+                "sessionID": sessionID
+            }
+        })
+      return serverResponse.json()
+    }
+    else{
+      return "No Session ID"
+    }
   }
 
 // Send the current new/updated item to the backend for storage
 export async function postInventory(itemData: any[]){
-  await fetch(serverDomain+"/inventory", {
-      method: "POST",
-      headers: {
-      "Content-Type": "application/json"
-      },
-      body: JSON.stringify(itemData),
-  })
+  let sessionID = localStorage.getItem("sessionID")
+  if(sessionID){
+    await fetch(serverDomain+"/inv", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "sessionID": sessionID
+        },
+        body: JSON.stringify(itemData),
+    })
+  }
+  else{
+    return "No Session ID"
+  }
 }
 
 // Delete the current new/existing item from storage
 export async function deleteInventory(item: string){
-  await fetch(serverDomain+"/inventory?item="+item, {
-      method: "DELETE"
-  })
+  let sessionID = localStorage.getItem("sessionID")
+  if(sessionID){
+    await fetch(serverDomain+"/inv?item="+item, {
+        method: "DELETE",
+        headers: {
+          "sessionID": sessionID
+        }
+    })
+  }
+  else{
+    return "No Session ID"
+  }
 }
 
 // Component to manage the inventory
@@ -41,10 +73,10 @@ function Inventory() {
   const [haveAmount, setHaveAmount] = useState<string>()
   const [checkWeekly, setCheckWeekly] = useState<boolean>(false)
   const [settingsPanelOpen, setSettingsPanelOpen] = useState<boolean>(false)
-  const [searchSuggestionsEnabled, setSearchSuggestionsEnabled] = useState<boolean>(true)
+  const [searchSuggestionsEnabled, setSearchSuggestionsEnabled] = useState<boolean>(false)
   const [editing, setEditing] = useState<boolean>(false)
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
+  const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
 
   /* 
     Take an item, get it's data from the server, and update the inputs with the resulting data 
@@ -52,33 +84,32 @@ function Inventory() {
   */
   function updateInputs(item: string) {
     setSearchQuery(item)
-    /*
-      TODO: Change this so that it just removes spaces, it doesn't need to be readable and it breaks - characters in item names
-            This will require a migration of the existing SQL data!
-    */
-    getInventory((item).replaceAll(" ", "-").toLowerCase()).then((response) => {
-      if (response[0] && response[0][1]){
-        if (response[0][1].toLowerCase() === item.toLowerCase()){
-          setSearchSuggestionsEnabled(false)
-          setHaveAmount(response[0][2])
-          setNeedAmount(response[0][3])
-          setCheckWeekly(response[0][4]==="true")
+    if (item){
+      /*
+        TODO: Change this so that it just removes spaces, it doesn't need to be readable and it breaks - characters in item names
+              This will require a migration of the existing SQL data!
+      */
+      getInventory((item).replaceAll(" ", "-").toLowerCase()).then((response) => {
+        if (response[0] && response[0][1]){
+          if (response[0][1].toLowerCase() === item.toLowerCase()){
+            setSearchSuggestionsEnabled(false)
+            setHaveAmount(response[0][2])
+            setNeedAmount(response[0][3])
+            setCheckWeekly(response[0][4]==="true")
+          }
+          else{
+            setSearchSuggestionsEnabled(true)
+          }
         }
-        else{
-          setSearchSuggestionsEnabled(true)
-          setHaveAmount("")
-          setNeedAmount("")
-          setCheckWeekly(false)
-        }
-      }
-      else{
-        setSearchSuggestionsEnabled(true)
-        setHaveAmount("")
-        setNeedAmount("")
-        setCheckWeekly(false)
-      }
-      setServerData(response)
-    })
+        setServerData(response)
+      })
+    }
+    else{
+      setSearchSuggestionsEnabled(false)
+      setHaveAmount("")
+      setNeedAmount("")
+      setCheckWeekly(false)
+    }
   }
    // If the URL query parameters change, update the inputs
   useEffect(() => {
@@ -133,6 +164,9 @@ function Inventory() {
               navigate("/report?filter="+searchParams.get('filter'))
           }
           updateInputs("")
+          setHaveAmount("")
+          setNeedAmount("")
+          setCheckWeekly(false)
           setEditing(false)
         }}>{editing ? "Update" : "Submit"}</button>
 
@@ -171,6 +205,9 @@ function Inventory() {
                     navigate("/report?filter="+searchParams.get('filter'))
                 }
                 updateInputs("")
+                setHaveAmount("")
+                setNeedAmount("")
+                setCheckWeekly(false)
               }}>
                 Delete
             </button>

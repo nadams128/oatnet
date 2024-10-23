@@ -5,9 +5,9 @@ import {useSearchParams, useNavigate} from 'react-router-dom';
 
 // Component to view the status of the inventory, with a set of filters and an option to go to the Inventory editor
 function Report() {
-  const [serverData, setServerData] = useState<any[]>()
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
+  const [serverData, setServerData] = useState<any>()
+  const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
 
   useEffect(() => {
     const filter = searchParams.get('filter')
@@ -35,6 +35,7 @@ function Report() {
     }
     else {
       getInventory("all").then((response) => {
+        console.log(response)
         setServerData(response)
       })
     }
@@ -75,7 +76,7 @@ function Report() {
         }}>Needed</button>
       </div>
         {/* Table to display report results */}
-        {serverData && <table className="mt-5 mx-2 table-auto select-none">
+        {serverData && serverData!=="You don't have permissions for that!" ? <table className="mt-5 mx-2 table-auto select-none">
           <thead>
             <tr>
               <td className="border-b border-r border-white border-dashed">Name:</td>
@@ -86,24 +87,24 @@ function Report() {
           <tbody>
             {/* For each row of data returned, generate the rows and data cells */}
             {serverData.map(
-              (row) => {
-                return(<tr 
-                  key={"row-"+row[1]} 
-                  className="hover:ring hover:ring-white hover:ring-offset-4 hover:ring-offset-oatnet-background"
-                  onClick={() => {
-                    navigate(searchParams.get("filter") ? "/inventory?item="+row[1]+"&filter="+searchParams.get("filter") : "/inventory?item="+row[1]+"&filter=all")
-                  }}
-                >
-                  <td key={row[1]} className="border-b border-r border-white border-solid">
-                    {row[1]}
-                  </td>
-                  <td key={row[1]+"-need"} className="border-b border-r border-white border-solid pl-1">{row[2]}</td>
-                  <td key={row[1]+"-have"} className="border-b border-white border-solid pl-1">{row[3]}</td>
-                </tr>)
+              (row:any[]) => {
+                return(
+                  <tr 
+                    key={"row-"+row[1]} 
+                    className="hover:ring hover:ring-white hover:ring-offset-4 hover:ring-offset-oatnet-background"
+                    onClick={() => {
+                      navigate(searchParams.get("filter") ? "/inventory?item="+row[1]+"&filter="+searchParams.get("filter") : "/inventory?item="+row[1]+"&filter=all")
+                    }}
+                  >
+                    <td key={row[1]} className="border-b border-r border-white border-solid">{row[1]}</td>
+                    <td key={row[1]+"-need"} className="border-b border-r border-white border-solid pl-1">{row[2]}</td>
+                    <td key={row[1]+"-have"} className="border-b border-white border-solid pl-1">{row[3]}</td>
+                  </tr>
+                )
               })
             }
           </tbody>
-        </table>}
+        </table>:<div>You don't have permissions for that!</div>}
     </div>
   )
 }

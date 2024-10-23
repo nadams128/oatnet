@@ -3,6 +3,8 @@ import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
 import Inventory from './Inventory';
 import Report from './Report';
+import Login from './Login'
+import Admin from './Admin'
 import {
   createBrowserRouter,
   createRoutesFromElements,
@@ -22,7 +24,7 @@ const router = createBrowserRouter(createRoutesFromElements(
   >
     <Route
       path = "/"
-      element = {<Inventory/>}
+      element = {<Login/>}
     />
     <Route
       path = "/inventory"
@@ -32,6 +34,14 @@ const router = createBrowserRouter(createRoutesFromElements(
     <Route
       path = "/report"
       element = {<Report/>}
+    />
+    <Route
+      path = "/login"
+      element = {<Login/>}
+    />
+    <Route
+      path = "/admin"
+      element = {<Admin/>}
     />
   </Route>
   
