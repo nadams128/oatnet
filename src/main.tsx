@@ -24,7 +24,7 @@ const router = createBrowserRouter(createRoutesFromElements(
   >
     <Route
       path = "/"
-      element = {<Login/>}
+      element = {localStorage.getItem("sessionID") ? <Report/> : <Login/>}
     />
     <Route
       path = "/inventory"
@@ -42,6 +42,10 @@ const router = createBrowserRouter(createRoutesFromElements(
     <Route
       path = "/admin"
       element = {<Admin/>}
+    />
+    <Route
+      path = "/search"
+      element = {<Inventory/>}
     />
   </Route>
   

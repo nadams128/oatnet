@@ -120,102 +120,106 @@ function Inventory() {
     }
     else{
       updateInputs("")
+      setEditing(false)
     }
   }, [searchParams])
   return(
-    <div>
-      {(!searchParams.get('item') || 
-      (haveAmount !== undefined && needAmount !== undefined)) && <div className="flex flex-col items-center mt-2 select-none">
-        <div>
-          {/* Search box for items */}
-          <input id="searchBox" readOnly={editing ? true : false} className="w-72 pl-1 bg-oatnet-light rounded-lg select-none" placeholder='Search' value={searchQuery ? searchQuery:""} list="searchResults" autoComplete="off" onChange={ e => {
-            updateInputs(e.target.value)
-          }}/>
-          {/* Datalist is populated with search results based on the text in the input */}
-          {searchSuggestionsEnabled && <datalist id="searchResults">
-            {serverData.map((row) => {
-              return <option key={row[1]}>{row[1]}</option>
-            })}
-          </datalist>}
-        </div>
-
-        {/* Text input for the have property */}
-        <div className="mt-6">
-          <div className="w-12 float-left">Have: </div>
-          <input id="haveBox" className="w-48 pl-1 bg-oatnet-light rounded-lg" placeholder='6oz, 4 pairs, ?, etc.' value={haveAmount ? haveAmount:""} autoComplete="off" onChange={e => {
-            setHaveAmount(e.target.value)
-          }}/>
-        </div>
-
-        {/* Text input for the need property */}
-        <div className="mt-4">
-          <div className="w-12 float-left">Need: </div>
-          <input id="needBox" className="w-48 pl-1 bg-oatnet-light rounded-lg" placeholder='6oz, 4 pairs, ?, etc.' value={needAmount ? needAmount:""} autoComplete="off" onChange={ e =>{
-            setNeedAmount(e.target.value)
-          }}/>
-        </div>
-
-        {/* Button to submit data to the backend */}
-        <button className="mt-6 ml-2 w-40 h-8 bg-oatnet-light rounded-lg" onClick={() => {
-          if(searchQuery != "" && haveAmount != "" && needAmount != ""){
-            postInventory([searchQuery, haveAmount, needAmount, checkWeekly.toString()])
-            // If there's a filter on this URL, the user should be sent back to the Reports page
-            if(searchParams.get("filter"))
-              navigate("/report?filter="+searchParams.get('filter'))
-          }
-          updateInputs("")
-          setHaveAmount("")
-          setNeedAmount("")
-          setCheckWeekly(false)
-          setEditing(false)
-        }}>{editing ? "Update" : "Submit"}</button>
-
-        {/* Collapsible panel for settings */}
-        <div className={settingsPanelOpen ? "w-72 mt-3 border-solid border-4 border-white rounded-lg pl-1" : "w-72 mt-4 pl-2"}>
-          <button className="w-9 mt-1 mr-2 px-3 py-1 rounded-lg bg-oatnet-light inline-block" onClick={() => {
-            setSettingsPanelOpen(!settingsPanelOpen)
-          }}>
-            {settingsPanelOpen ? "-": "+"}
-          </button> 
-          <div className="inline-block">
-            <div className='mr-1 inline-block'>Settings:</div>
-            {!settingsPanelOpen && <div className="w-36 h-1 mb-1 bg-white rounded-lg inline-block"></div>}
+    <>
+      {serverData[0]!=="You don't have permissions for that!" ? <div>
+        {(!searchParams.get('item') || 
+        (haveAmount !== undefined && needAmount !== undefined)) && <div className="flex flex-col items-center mt-2 select-none">
+          <div>
+            {/* Search box for items */}
+            <input id="searchBox" readOnly={editing ? true : false} className="w-72 pl-1 bg-oatnet-light rounded-lg select-none" placeholder='Search' value={searchQuery ? searchQuery:""} list="searchResults" autoComplete="off" onChange={ e => {
+              updateInputs(e.target.value)
+            }}/>
+            {/* Datalist is populated with search results based on the text in the input */}
+            {searchSuggestionsEnabled && <datalist id="searchResults">
+              {serverData && serverData.map((row) => {
+                return <option key={row[1]}>{row[1]}</option>
+              })}
+            </datalist>}
           </div>
 
-          {settingsPanelOpen &&
-            <div className="w-60 rounded-lg">
-            {/* Checkbox to mark an item as one to check the status of weekly */}
-            <div className='flex items-center'>
-              <div className="mt-2 ml-1 mb-2">
-                Check Weekly?:
-              </div>
-              <div className="w-5 h-5 ml-2 bg-oatnet-light rounded-md flex items-center justify-center" onClick={() => {
-                  setCheckWeekly(!checkWeekly)
-              }}>
-                  {/* TODO: Turn the ✔ into a custom CSS object so it displays the same on all devices*/}
-                  {checkWeekly ? <img className="white" src="/assets/check.svg" alt="Checkmark"/> : ""}
-              </div>
+          {/* Text input for the have property */}
+          <div className="mt-6">
+            <div className="w-12 float-left">Have: </div>
+            <input id="haveBox" className="w-48 pl-1 bg-oatnet-light rounded-lg" placeholder='6oz, 4 pairs, ?, etc.' value={haveAmount ? haveAmount:""} autoComplete="off" onChange={e => {
+              setHaveAmount(e.target.value)
+            }}/>
+          </div>
+
+          {/* Text input for the need property */}
+          <div className="mt-4">
+            <div className="w-12 float-left">Need: </div>
+            <input id="needBox" className="w-48 pl-1 bg-oatnet-light rounded-lg" placeholder='6oz, 4 pairs, ?, etc.' value={needAmount ? needAmount:""} autoComplete="off" onChange={ e =>{
+              setNeedAmount(e.target.value)
+            }}/>
+          </div>
+
+          {/* Button to submit data to the backend */}
+          <button className="mt-6 ml-2 w-40 h-8 bg-oatnet-light rounded-lg" onClick={() => {
+            if(searchQuery != "" && haveAmount != "" && needAmount != ""){
+              postInventory([searchQuery, haveAmount, needAmount, checkWeekly.toString()])
+              // If there's a filter on this URL, the user should be sent back to the Reports page
+              if(searchParams.get("filter"))
+                navigate("/report?filter="+searchParams.get('filter'))
+            }
+            updateInputs("")
+            setHaveAmount("")
+            setNeedAmount("")
+            setCheckWeekly(false)
+            setEditing(false)
+          }}>{editing ? "Update" : "Submit"}</button>
+
+          {/* Collapsible panel for settings */}
+          <div className={settingsPanelOpen ? "w-72 mt-3 border-solid border-4 border-white rounded-lg pl-1" : "w-72 mt-4 pl-2"}>
+            <button className="w-9 mt-1 mr-2 px-3 py-1 rounded-lg bg-oatnet-light inline-block" onClick={() => {
+              setSettingsPanelOpen(!settingsPanelOpen)
+            }}>
+              {settingsPanelOpen ? "-": "+"}
+            </button> 
+            <div className="inline-block">
+              <div className='mr-1 inline-block'>Settings:</div>
+              {!settingsPanelOpen && <div className="w-36 h-1 mb-1 bg-white rounded-lg inline-block"></div>}
             </div>
-            {/* Button to delete data from the backend */}
-            <button className="w-28 h-8 ml-1 mb-2 bg-red-600 rounded-lg" onClick={() => {
-                if(searchQuery && searchQuery != ""){
-                  deleteInventory((searchQuery).replaceAll(" ", "-").toLowerCase(), )
-                  // If there's a filter on this URL, the user should be sent back to the Reports page
-                  if(searchParams.get("filter"))
-                    navigate("/report?filter="+searchParams.get('filter'))
-                }
-                updateInputs("")
-                setHaveAmount("")
-                setNeedAmount("")
-                setCheckWeekly(false)
-              }}>
-                Delete
-            </button>
+
+            {settingsPanelOpen &&
+              <div className="w-60 rounded-lg">
+              {/* Checkbox to mark an item as one to check the status of weekly */}
+              <div className='flex items-center'>
+                <div className="mt-2 ml-1 mb-2">
+                  Check Weekly?:
+                </div>
+                <div className="w-5 h-5 ml-2 bg-oatnet-light rounded-md flex items-center justify-center" onClick={() => {
+                    setCheckWeekly(!checkWeekly)
+                }}>
+                    {/* TODO: Turn the ✔ into a custom CSS object so it displays the same on all devices*/}
+                    {checkWeekly ? <img className="white" src="/assets/check.svg" alt="Checkmark"/> : ""}
+                </div>
+              </div>
+              {/* Button to delete data from the backend */}
+              <button className="w-28 h-8 ml-1 mb-2 bg-red-600 rounded-lg" onClick={() => {
+                  if(searchQuery && searchQuery != ""){
+                    deleteInventory((searchQuery).replaceAll(" ", "-").toLowerCase(), )
+                    // If there's a filter on this URL, the user should be sent back to the Reports page
+                    if(searchParams.get("filter"))
+                      navigate("/report?filter="+searchParams.get('filter'))
+                  }
+                  updateInputs("")
+                  setHaveAmount("")
+                  setNeedAmount("")
+                  setCheckWeekly(false)
+                }}>
+                  Delete
+              </button>
+            </div>
+            }
           </div>
-          }
-        </div>
-      </div>}
-    </div>
+        </div>}
+      </div> : !localStorage.getItem("sessionID") && <div className=" ml-8 mr-8 text-center">You don't have permissions to view this page! Please contact your Oatnet administrator for read and/or write permissions!</div>}
+    </>
+    
   )
 }
 

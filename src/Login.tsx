@@ -1,5 +1,7 @@
 "use client";
-import { useState } from 'react';
+import { useState, useContext } from 'react';
+import { useNavigate } from 'react-router-dom'
+import { LoginContext } from './App';
 
 let serverDomain = "http://127.0.0.1:5000"
 
@@ -31,25 +33,35 @@ export async function logoutUser() {
 function Login() {
     const [username, setUsername] = useState<string>()
     const [password, setPassword] = useState<string>()
-    const [loggedIn, setLoggedIn] = (localStorage.getItem("sessionID") ? useState<boolean>(true) : useState<boolean>(false))
+    const {loggedIn, setLoggedIn} = useContext<any>(LoginContext)
     const [incorrectPassword , setIncorrectPassword] = useState<boolean>(false)
+    const navigate = useNavigate()
     return(
         <div className="flex flex-col items-center mt-2 select-none">
             {/* Text input for the username property */}
-            <div className="mt-6">
+            
+            {!localStorage.getItem("username") && <div className="ml-8 mr-8 text-center">
+                If you want to sign into an organization's shared account, please use the shared account credentials below! Otherwise, entering credentials will create an account, then you can ask your Oatnet administrator for permissions.
+            </div>}
+            
+            {!loggedIn && <div className="mt-6">
                 <div className="w-20 float-left">Username: </div>
                 <input id="usernameBox" className="w-48 pl-1 bg-oatnet-light rounded-lg" placeholder='oat200' value={username ? username:""} onChange={e => {
                     setUsername(e.target.value)
                 }}/>
-            </div>
+            </div>}
 
             {/* Text input for the password property */}
-            <div className="mt-4">
+            {!loggedIn && <div className="mt-4">
                 <div className="w-20 float-left">Password: </div>
                 <input id="passwordBox" type="password" className="w-48 pl-1 bg-oatnet-light rounded-lg" placeholder='123password321' value={password ? password:""} onChange={ e =>{
                     setPassword(e.target.value)
                 }}/>
-            </div>
+            </div>}
+
+            {incorrectPassword && <div className="pt-2">Haha WHOOPS! Wrong Password!</div>}
+
+            {loggedIn && <div className="pt-2">You're logged in as "{localStorage.getItem("username")}", congrats! :D</div>}
 
             {/* Button to either log the user in or log the user out*/}
             <button className="mt-6 ml-2 w-40 h-8 bg-oatnet-light rounded-lg" onClick={() => {
@@ -59,7 +71,7 @@ function Login() {
                             localStorage.setItem("username",username)
                             localStorage.setItem("sessionID",response)
                             setLoggedIn(true)
-                            setIncorrectPassword(false)
+                            navigate("/report")
                         }
                         else if (response === "Incorrect Password!"){
                             setIncorrectPassword(true)
@@ -71,8 +83,7 @@ function Login() {
                     logoutUser()
                     setLoggedIn(false)
                 }
-            }}>{loggedIn ? "Logout": "Login"}</button>
-            {incorrectPassword && <div>Wrong Password!</div>}
+            }}>{loggedIn ? "Logout" : (localStorage.getItem("username") ? "Login" : "Register")}</button>
         </div>
     )
 }
