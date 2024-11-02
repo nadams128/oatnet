@@ -48,7 +48,7 @@ def modifyInventory():
                 response.headers.add("Access-Control-Allow-Origin", domain)
                 return response
     else:
-        response = jsonify("You don't have permissions for that!")
+        response = jsonify(["You don't have permissions for that!"])
         response.headers.add("Access-Control-Allow-Origin", domain)
         return response
 
@@ -84,6 +84,6 @@ def getInventory():
         response.headers.add("Access-Control-Allow-Origin", domain)
         return response
     else:
-        response = jsonify("You don't have permissions for that!")
+        response = jsonify(["You don't have permissions for that!"])
         response.headers.add("Access-Control-Allow-Origin", domain)
         return response

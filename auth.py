@@ -22,7 +22,7 @@ def optionsAuth():
     response = make_response()
     response.headers.add("Access-Control-Allow-Origin", domain)
     response.headers.add("Access-Control-Allow-Headers", "Content-Type, sessionID, action")
-    response.headers.add("Access-Control-Allow-Methods", "OPTIONS, POST, GET")
+    response.headers.add("Access-Control-Allow-Methods", "OPTIONS, POST, DELETE, GET")
     return response
 
 # handle incoming post requests
@@ -57,7 +57,6 @@ def modifyUsers():
                 cursor.execute("DELETE FROM sessions WHERE sessionid = '" + request.json + "'")
         elif request.headers["action"] == "change_permissions":
             requestingUser = cursor.execute("SELECT username FROM sessions WHERE sessionID='"+request.headers["sessionID"]+"'").fetchone()
-            print(request.json)
             username = request.json[0]
             read = None
             write = None
@@ -74,7 +73,23 @@ def modifyUsers():
                 cursor.execute("UPDATE permissions SET read="+read+", write="+write+" WHERE username='"+username+"'")
                 response = jsonify("User permissions for "+username+" have been updated")
             else:
-                response = jsonify("You aren't an administrator")
+                response = jsonify(["You aren't an administrator"])
+    db.commit()
+    response.headers.add("Access-Control-Allow-Origin", domain)
+    return response
+
+@bp.route("/auth", methods=["DELETE"])
+def deleteUser():
+    response = None
+    db = database.connect_db()
+    cursor = db.cursor()
+    requestingUser = cursor.execute("SELECT username FROM sessions WHERE sessionID='"+request.headers["sessionID"]+"'").fetchone()
+    if requestingUser and requestingUser[0] == "administrator":
+        print(request.json)
+        cursor.execute("DELETE FROM permissions WHERE username ='"+request.json+"'")
+        response = jsonify(["User "+request.json+" deleted successfully!"])
+    else:
+        response = jsonify(["You aren't an administrator"])
     db.commit()
     response.headers.add("Access-Control-Allow-Origin", domain)
     return response
@@ -97,9 +112,10 @@ def getUsers():
         allUsersRows = cursor.execute("SELECT username, read, write FROM permissions").fetchall()
         allUsers = []
         for user in allUsersRows:
-            allUsers.append([user[0], user[1], user[2]])
+            if user[0] != "administrator":
+                allUsers.append([user[0], user[1], user[2]])
         response = jsonify(allUsers)
     else:
-        response = jsonify("You aren't an administrator")
+        response = jsonify(["You aren't an administrator"])
     response.headers.add("Access-Control-Allow-Origin", domain)
     return response
