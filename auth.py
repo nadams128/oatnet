@@ -86,6 +86,8 @@ def deleteUser():
     requestingUser = cursor.execute("SELECT username FROM sessions WHERE sessionID='"+request.headers["sessionID"]+"'").fetchone()
     if requestingUser and requestingUser[0] == "administrator":
         print(request.json)
+        cursor.execute("DELETE FROM users WHERE username ='"+request.json+"'")
+        cursor.execute("DELETE FROM sessions WHERE username ='"+request.json+"'")
         cursor.execute("DELETE FROM permissions WHERE username ='"+request.json+"'")
         response = jsonify(["User "+request.json+" deleted successfully!"])
     else:

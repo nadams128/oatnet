@@ -55,7 +55,9 @@ def modifyInventory():
 # handle incoming get requests
 @bp.route("/inv", methods=["GET"])
 def getInventory():
-    canRead = auth.checkPermissions(request.headers["sessionID"])[0]
+    canRead = None
+    if auth.checkPermissions(request.headers["sessionID"]):
+        canRead = auth.checkPermissions(request.headers["sessionID"])[0]
     if canRead == 1:
         db = database.connect_db()
         cursor = db.cursor()
