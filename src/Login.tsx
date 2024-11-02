@@ -33,15 +33,17 @@ export async function logoutUser() {
 function Login() {
     const [username, setUsername] = useState<string>()
     const [password, setPassword] = useState<string>()
+    const [passwordConfirmation, setPasswordConfirmation] = useState<string>()
     const {loggedIn, setLoggedIn} = useContext<any>(LoginContext)
-    const [incorrectPassword , setIncorrectPassword] = useState<boolean>(false)
+    const [incorrectPassword, setIncorrectPassword] = useState<boolean>(false)
+    const [passwordsMatch, setpasswordsMatch] = useState<boolean>(true)
     const navigate = useNavigate()
     return(
         <div className="flex flex-col items-center mt-2 select-none">
             {/* Text input for the username property */}
             
             {!localStorage.getItem("username") && <div className="ml-8 mr-8 text-center">
-                If you want to sign into an organization's shared account, please use the shared account credentials below! Otherwise, entering credentials will create an account, then you can ask your Oatnet administrator for permissions.
+                If you want to sign into an organization's shared account, please use the shared account credentials below! Otherwise, entering credentials will create an account, then you can ask your Oatnet administrator for permissions. If you already have an account and are seeing this, your credentials will log you in.
             </div>}
             
             {!loggedIn && <div className="mt-6">
@@ -59,13 +61,24 @@ function Login() {
                 }}/>
             </div>}
 
-            {incorrectPassword && <div className="pt-2">Haha WHOOPS! Wrong Password!</div>}
+            {/* Text input for password confirmation on registration*/}
+            {!localStorage.getItem("username") && <div className="mt-4">
+                <div className="w-20 float-left">Confirm: </div>
+                <input id="passwordConfirmBox" type="password" className={passwordsMatch ? "w-48 pl-1 bg-oatnet-light rounded-lg" : "w-48 text-black pl-1 bg-red-400 rounded-lg"} placeholder='123password321' value={passwordConfirmation ? passwordConfirmation:""} onChange={ e =>{
+                    setPasswordConfirmation(e.target.value)
+                    setpasswordsMatch(true)
+                }}/>
+            </div>}
+
+            {incorrectPassword && <div className="pt-2">Haha WHOOPS! Wrong password!</div>}
+
+            {!passwordsMatch && <div className="pt-2">Your passwords don't match, please try again!</div>}
 
             {loggedIn && <div className="pt-2">You're logged in as "{localStorage.getItem("username")}", congrats! :D</div>}
 
             {/* Button to either log the user in or log the user out*/}
             <button className="mt-6 ml-2 w-40 h-8 bg-oatnet-light rounded-lg" onClick={() => {
-                if (!localStorage.getItem("sessionID") && username && password){
+                if ((localStorage.getItem("username") && !localStorage.getItem("sessionID") && username && password) || (!localStorage.getItem("username") && !localStorage.getItem("sessionID") && username && password && password===passwordConfirmation)){
                     loginUser(username, password).then((response)=>{
                         if (response !== "Incorrect Password!") {
                             localStorage.setItem("username",username)
@@ -77,11 +90,13 @@ function Login() {
                             setIncorrectPassword(true)
                         }
                     })
-                    
                 }
                 else if(localStorage.getItem("sessionID")){
                     logoutUser()
                     setLoggedIn(false)
+                }
+                else if(!localStorage.getItem("username") && !localStorage.getItem("sessionID") && username && password && password!==passwordConfirmation){
+                    setpasswordsMatch(false)
                 }
             }}>{loggedIn ? "Logout" : (localStorage.getItem("username") ? "Login" : "Register")}</button>
         </div>

@@ -105,7 +105,7 @@ function Report() {
               }
             </tbody>
           </table>
-      </div> : !localStorage.getItem("sessionID") && <div className=" ml-8 mr-8 text-center">You don't have permissions to view this page! Please contact your Oatnet administrator for read and/or write permissions!</div>}
+      </div> : serverData && serverData[0]==="You don't have permissions for that!" && <div className=" ml-8 mr-8 text-center">You don't have permissions to view this page! Please contact your Oatnet administrator for read and/or write permissions!</div>}
     </>
   )
 }

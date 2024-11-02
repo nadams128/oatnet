@@ -67,7 +67,7 @@ function App({children}:any) {
             </div>
 
             {/* Set displayed component to Admin via routing */}
-            {localStorage.getItem("username") === "administrator" && <div className="flex justify-center font-rubik text-lg" onClick={() => {
+            {localStorage.getItem("sessionID") && localStorage.getItem("username") === "administrator" && <div className="flex justify-center font-rubik text-lg" onClick={() => {
               setShowMenu(false)
             }}>
               <Link to="/admin">Admin Panel</Link>

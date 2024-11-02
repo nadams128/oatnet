@@ -34,6 +34,20 @@ async function changeUserPermissions(user:string, read:boolean, write:boolean) {
     }
 }
 
+export async function deleteUser(username:string) {
+    let sessionID = localStorage.getItem("sessionID")
+    if (sessionID){
+        await fetch(serverDomain+"/auth", {
+            method: "DELETE",
+            headers: {
+                "Content-Type":"application/json",
+                "sessionID": sessionID
+            },
+            body: JSON.stringify(username),
+        })
+    }
+}
+
 function Admin() {
     const [usersData, setUsersData] = useState<any>()
 
@@ -67,39 +81,52 @@ function Admin() {
                         <td className="border-b border-r border-white border-dashed">Username</td>
                         <td className="border-b border-r border-white border-dashed text-center">Read?</td>
                         <td className="border-b border-l border-white border-dashed text-center">Write?</td>
+                        <td className="border-b border-l border-white border-dashed text-center">Delete User</td>
                     </tr>
                 </thead>
                 <tbody>
                     {/* for users in userdata, generate row and cells for each*/}
                     {Object.entries(usersData).map((user:any[])=>{
                         const name = user[0]
-                        const read = user[1].read
-                        const write = user[1].write
-                        return(
-                            <tr className="" key = {name}>
-                                <td className="border-b border-r border-white border-solid">{name}</td>
-                                <td className="border-b border-r border-white border-solid">
-                                    <div className="flex flex-row justify-center">
-                                        <div className="w-5 h-5 bg-oatnet-light rounded-md flex items-center justify-center" onClick={() => {
-                                            setUsersData({...usersData,[name]:{read:!read, write:write}})
-                                            changeUserPermissions(name, !read, write)
-                                        }}>
-                                            {read ? <img className="white" src="/assets/check.svg" alt="Checkmark"/> : ""}
+                        if(name && user[1]){
+                            const read = user[1].read
+                            const write = user[1].write
+                            return(
+                                <tr className="" key = {name}>
+                                    <td className="border-b border-r border-white border-solid">{name}</td>
+                                    <td className="w-16 border-b border-r border-white border-solid">
+                                        <div className="flex flex-row justify-center">
+                                            <div className="w-6 h-6 my-0.5 bg-oatnet-light rounded-md flex items-center justify-center" onClick={() => {
+                                                setUsersData({...usersData,[name]:{read:!read, write:write}})
+                                                changeUserPermissions(name, !read, write)
+                                            }}>
+                                                {read ? <img className="white" src="/assets/check.svg" alt="Checkmark"/> : ""}
+                                            </div>
                                         </div>
-                                    </div>
-                                </td>
-                                <td className="border-b border-white border-solid">
-                                    <div className="flex flex-row justify-center">
-                                        <div className="w-5 h-5 bg-oatnet-light rounded-md flex items-center justify-center" onClick={() => {
-                                            setUsersData({...usersData,[name]:{read:read, write:!write}})
-                                            changeUserPermissions(name, read, !write)
-                                        }}>
-                                            {write ? <img className="white" src="/assets/check.svg" alt="Checkmark"/> : ""}
+                                    </td>
+                                    <td className="w-16 border-b border-r border-white border-solid">
+                                        <div className="flex flex-row justify-center">
+                                            <div className="w-6 h-6 my-0.5 bg-oatnet-light rounded-md flex items-center justify-center" onClick={() => {
+                                                setUsersData({...usersData,[name]:{read:read, write:!write}})
+                                                changeUserPermissions(name, read, !write)
+                                            }}>
+                                                {write ? <img src="/assets/check.svg" alt="Checkmark"/> : ""}
+                                            </div>
                                         </div>
-                                    </div>
-                                </td>
-                            </tr>
-                        )
+                                    </td>
+                                    <td className="w-24 border-b border-white border-solid">
+                                        <div className="flex flex-row justify-center">
+                                            <div className="w-6 h-6 my-0.5 bg-oatnet-light rounded-md flex items-center justify-center" onClick={() => {
+                                                deleteUser(name)
+                                                setUsersData({...usersData,[name]:null})
+                                            }}>
+                                                <img src="/assets/trashcan.svg" alt="Trash Can"/>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            )
+                        }
                     })}
                 </tbody>
             </table>

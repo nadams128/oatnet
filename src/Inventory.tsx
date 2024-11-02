@@ -111,7 +111,8 @@ function Inventory() {
       setCheckWeekly(false)
     }
   }
-   // If the URL query parameters change, update the inputs
+  
+  // If the URL query parameters change, update the inputs
   useEffect(() => {
     const item = searchParams.get('item')
     if(item){
@@ -123,9 +124,10 @@ function Inventory() {
       setEditing(false)
     }
   }, [searchParams])
+  
   return(
     <>
-      {serverData[0]!=="You don't have permissions for that!" ? <div>
+      {serverData && serverData[0]!=="You don't have permissions for that!" ? <div>
         {(!searchParams.get('item') || 
         (haveAmount !== undefined && needAmount !== undefined)) && <div className="flex flex-col items-center mt-2 select-none">
           <div>
