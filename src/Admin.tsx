@@ -1,8 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
+import { serverDomain } from './App';
 
-let serverDomain = "http://127.0.0.1:5000"
-
+// get the list of users
 async function getUsers() {
     let sessionID = localStorage.getItem("sessionID")
     if (sessionID){
@@ -19,6 +19,7 @@ async function getUsers() {
     }
 }
 
+// update the permissions for a given user
 async function changeUserPermissions(user:string, read:boolean, write:boolean) {
     let sessionID = localStorage.getItem("sessionID")
     if (sessionID){
@@ -34,6 +35,7 @@ async function changeUserPermissions(user:string, read:boolean, write:boolean) {
     }
 }
 
+// delete a given user
 export async function deleteUser(username:string) {
     let sessionID = localStorage.getItem("sessionID")
     if (sessionID){
@@ -48,24 +50,19 @@ export async function deleteUser(username:string) {
     }
 }
 
+// administrator panel, only available to the auto-generated 'administrator' user
 function Admin() {
     const [usersData, setUsersData] = useState<any>()
 
+    // attempt to get the user list, runs once on component load
     useEffect(() => {
         let responseData:any = {}
         getUsers().then((response)=>{
+            // if the server validates the user as the administrator, setup the usersData
             if(response !== "You aren't an administrator"){
                 response.map((user:any[])=>{
-                    let read
-                    let write
-                    if(user[1] === 0)
-                        read = false
-                    else
-                        read = true
-                    if(user[2] === 0)
-                        write = false
-                    else
-                        write = true
+                    let read = user[1]
+                    let write = user[2]
                     responseData[user[0]] = {read:read, write:write}
                 })
                 setUsersData(responseData)
@@ -85,9 +82,14 @@ function Admin() {
                     </tr>
                 </thead>
                 <tbody>
-                    {/* for users in userdata, generate row and cells for each*/}
+                    {/* convert usersData into an array for iteration, then for each user in usersData, generate the row and the cells */}
                     {Object.entries(usersData).map((user:any[])=>{
+                        // set name to the first index, which contains the key of the original object
                         const name = user[0]
+                        /*
+                            if the name exists, and it has a second index(this contains the value of usersData[name], which is an object),
+                            then set the read and write variables to the values of the object stored in the second index
+                        */
                         if(name && user[1]){
                             const read = user[1].read
                             const write = user[1].write
@@ -97,6 +99,10 @@ function Admin() {
                                     <td className="w-16 border-b border-r border-white border-solid">
                                         <div className="flex flex-row justify-center">
                                             <div className="w-6 h-6 my-0.5 bg-oatnet-light rounded-md flex items-center justify-center" onClick={() => {
+                                                /*
+                                                    set usersData to a new object, which has all the values of the original, but with 
+                                                    the specified user's key swapped out for a new object with the updated values
+                                                */
                                                 setUsersData({...usersData,[name]:{read:!read, write:write}})
                                                 changeUserPermissions(name, !read, write)
                                             }}>
@@ -107,6 +113,10 @@ function Admin() {
                                     <td className="w-16 border-b border-r border-white border-solid">
                                         <div className="flex flex-row justify-center">
                                             <div className="w-6 h-6 my-0.5 bg-oatnet-light rounded-md flex items-center justify-center" onClick={() => {
+                                                /*
+                                                    set usersData to a new object, which has all the values of the original, but with 
+                                                    the specified user's key swapped out for a new object with the updated values
+                                                */
                                                 setUsersData({...usersData,[name]:{read:read, write:!write}})
                                                 changeUserPermissions(name, read, !write)
                                             }}>
@@ -117,8 +127,12 @@ function Admin() {
                                     <td className="w-24 border-b border-white border-solid">
                                         <div className="flex flex-row justify-center">
                                             <div className="w-6 h-6 my-0.5 bg-oatnet-light rounded-md flex items-center justify-center" onClick={() => {
-                                                deleteUser(name)
+                                                /*
+                                                    set usersData to a new object, which has all the values of the original, but with 
+                                                    the specified user's key swapped out for a null value
+                                                */
                                                 setUsersData({...usersData,[name]:null})
+                                                deleteUser(name)
                                             }}>
                                                 <img src="/assets/trashcan.svg" alt="Trash Can"/>
                                             </div>

@@ -3,35 +3,34 @@ import { useEffect, useState } from 'react';
 import {getInventory} from "./Inventory";
 import {useSearchParams, useNavigate} from 'react-router-dom';
 
-// Component to view the status of the inventory, with a set of filters and an option to go to the Inventory editor
+// component to view the status of the inventory, with a set of filters and an option to go to the inventory editor
 function Report() {
   const [serverData, setServerData] = useState<any[]>()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
 
+  // if the URL query parameters change, update the filters accordingly
+  // this does run when the component loads, because the useEffect() detects the searchParams changing when they initialize
   useEffect(() => {
     const filter = searchParams.get('filter')
     if(filter) {
-      getInventory(filter).then((response) => {
-        setServerData(response)
-        switch (filter){
-          case "all":
-            getInventory("all").then((response) => {
-              setServerData(response)
-            })
-            break
-          case "weekly":
-            getInventory("weekly").then((response) => {
-              setServerData(response)
-            })
-            break
-          case "needed":
-            getInventory("needed").then((response) => {
-              setServerData(response)
-            })
-            break
-        }
-      })
+      switch (filter){
+        case "all":
+          getInventory("all").then((response) => {
+            setServerData(response)
+          })
+          break
+        case "weekly":
+          getInventory("weekly").then((response) => {
+            setServerData(response)
+          })
+          break
+        case "needed":
+          getInventory("needed").then((response) => {
+            setServerData(response)
+          })
+          break
+      }
     }
     else {
       getInventory("all").then((response) => {
@@ -42,8 +41,9 @@ function Report() {
 
   return(
     <>
+      {/* if the server returned a response and doesn't indicate the user not having permissions, render inputs */}
       {serverData && serverData[0]!=="You don't have permissions for that!" ? <div className="flex flex-col">
-        {/* Button to refresh the displayed data with new changes from backend */}
+        {/* button to refresh the displayed data with new changes from the server */}
         <button className="mt-2 ml-2 w-32 h-8 bg-oatnet-light rounded-lg select-none" onClick={() => {
           const filter = searchParams.get("filter")
           getInventory(filter ? filter : "all").then((response) => {
@@ -51,7 +51,7 @@ function Report() {
           })
         }}>Refresh</button>
         <div>
-          {/* Button to set the filter to all items */}
+          {/* button to set the filter to all items */}
           <button className="mt-5 ml-2 w-20 h-8 bg-oatnet-light rounded-lg select-none" onClick={() => {
             getInventory("all").then((response) => {
               setServerData(response)
@@ -59,7 +59,7 @@ function Report() {
             })
           }}>All</button>
 
-          {/* Button to set the filter to just the weekly items */}
+          {/* button to set the filter to just the weekly items */}
           <button className="mt-5 ml-2 w-24 h-8 bg-oatnet-light rounded-lg select-none" onClick={() => {
             getInventory("weekly").then((response) => {
               setServerData(response)
@@ -67,7 +67,7 @@ function Report() {
             })
           }}>Weekly</button>
 
-          {/* Button to set the filter to just the needed items */}
+          {/* button to set the filter to just the needed items */}
           <button className="mt-5 ml-2 w-24 h-8 bg-oatnet-light rounded-lg select-none" onClick={() => {
             getInventory("needed").then((response) => {
               setServerData(response)
@@ -75,7 +75,7 @@ function Report() {
             })
           }}>Needed</button>
         </div>
-          {/* Table to display report results */}
+          {/* table to display the report results */}
           <table className="mt-5 mx-2 table-auto select-none">
             <thead>
               <tr>
@@ -85,7 +85,7 @@ function Report() {
               </tr>
             </thead>
             <tbody>
-              {/* For each row of data returned, generate the rows and data cells */}
+              {/* for each row of data returned, generate the rows and data cells */}
               {serverData.map(
                 (row:any[]) => {
                   return(
@@ -105,6 +105,7 @@ function Report() {
               }
             </tbody>
           </table>
+      {/* if the user doesn't have permissions, let them know */}
       </div> : serverData && serverData[0]==="You don't have permissions for that!" && <div className=" ml-8 mr-8 text-center">You don't have permissions to view this page! Please contact your Oatnet administrator for read and/or write permissions!</div>}
     </>
   )
