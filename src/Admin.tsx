@@ -22,6 +22,8 @@ async function getUsers() {
 // update the permissions for a given user
 async function changeUserPermissions(user:string, read:boolean, write:boolean) {
     let sessionID = localStorage.getItem("sessionID")
+    let convertedRead:number = read ? 1 : 0
+    let convertedWrite:number = write ? 1 : 0
     if (sessionID){
         await fetch(serverDomain+"/auth", {
             method: "POST",
@@ -30,7 +32,7 @@ async function changeUserPermissions(user:string, read:boolean, write:boolean) {
                 "sessionID": sessionID,
                 "action": "change_permissions"
             },
-            body: JSON.stringify([user, read, write])
+            body: JSON.stringify([user, convertedRead, convertedWrite])
         })
     }
 }

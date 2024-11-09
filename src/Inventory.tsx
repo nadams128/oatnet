@@ -87,11 +87,7 @@ function Inventory() {
   function updateInputs(item: string) {
     setSearchQuery(item)
     if (item){
-      /*
-        TODO: change this so that it just removes spaces, it doesn't need to be readable and it breaks - characters in item names,
-              this will require a migration of the existing SQL data!
-      */
-      getInventory((item).replaceAll(" ", "-").toLowerCase()).then((response) => {
+      getInventory((item).replaceAll(" ", "").toLowerCase()).then((response) => {
         // if the server returned a valid response with an item name
         if (response[0] && response[0][1]){
           // if that item matches what the user has typed, update the inputs with the item data
@@ -99,7 +95,7 @@ function Inventory() {
             setSearchSuggestionsEnabled(false)
             setHaveAmount(response[0][2])
             setNeedAmount(response[0][3])
-            setCheckWeekly(response[0][4]==="true")
+            setCheckWeekly(response[0][4])
           }
           else{
             setSearchSuggestionsEnabled(true)
@@ -176,7 +172,7 @@ function Inventory() {
           {/* button to submit data to the backend */}
           <button className="mt-6 ml-2 w-40 h-8 bg-oatnet-light rounded-lg" onClick={() => {
             if(searchQuery != "" && haveAmount != "" && needAmount != ""){
-              postInventory([searchQuery, haveAmount, needAmount, checkWeekly.toString()])
+              postInventory([searchQuery, haveAmount, needAmount, checkWeekly])
               // if there's a filter on this URL, the user should be sent back to the reports page
               if(searchParams.get("filter"))
                 navigate("/report?filter="+searchParams.get('filter'))
