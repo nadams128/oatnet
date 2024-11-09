@@ -4,20 +4,24 @@ import secrets
 import bcrypt
 from flask import current_app, g
 
-# connect to the db, run the schema to reformat it, generate the administrator and print its password to the CLI
+# initialization function for oatnet-server setup
 def init_db():
+    # connect to the database
     db = connect_db()
+    # run the schema to reformat the database
     with current_app.open_resource('schema.sql') as f:
         db.executescript(f.read().decode('utf8'))
+    # generate the administrator account
     cursor = db.cursor()
     password = secrets.token_hex(16)
     hashSalt = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
     cursor.execute("INSERT INTO users(username, password) VALUES ('administrator','" + hashSalt + "')")
     cursor.execute("INSERT INTO permissions(username, read, write) VALUES ('administrator',TRUE,TRUE)")
     db.commit()
+    # print the administrator password to the CLI
     click.echo("The initial administrator password is: " + password)
 
-# get the db info from the app and connect to it
+# get the database info from the app and connect to it
 def connect_db():
     if 'db' not in g:
         g.db = sqlite3.connect(
@@ -27,7 +31,7 @@ def connect_db():
         g.db.row_factory = sqlite3.Row
     return g.db
 
-# disconnect from the db if it exists
+# disconnect from the database if it exists
 def disconnect_db(e=None):
     db = g.pop('db', None)
     if db is not None:
