@@ -16,7 +16,7 @@ def init_db():
     password = secrets.token_hex(16)
     hashSalt = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
     cursor.execute("INSERT INTO users(username, password) VALUES ('administrator','" + hashSalt + "')")
-    cursor.execute("INSERT INTO permissions(username, read, write) VALUES ('administrator',TRUE,TRUE)")
+    cursor.execute("INSERT INTO permissions(username, read, write) VALUES ('administrator',1,1)")
     db.commit()
     # print the administrator password to the CLI
     click.echo("The initial administrator password is: " + password)
