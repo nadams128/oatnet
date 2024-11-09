@@ -18,7 +18,7 @@ export async function getInventory(item: string){
       })
       // if there is an item specified in the url, send a request to the server along with the user's sessionID
       else
-          serverResponse = await fetch(serverDomain+"/inv?item="+item, {
+          serverResponse = await fetch(serverDomain+"/inv?item="+item.replaceAll(" ", "").toLowerCase(), {
             method: "GET",
             headers: {
                 "sessionID": sessionID
@@ -55,7 +55,7 @@ export async function deleteInventory(item: string){
   let sessionID = localStorage.getItem("sessionID")
   if(sessionID){
     // send delete request to the server along with the sessionID
-    await fetch(serverDomain+"/inv?item="+item, {
+    await fetch(serverDomain+"/inv?item="+item.replaceAll(" ", "").toLowerCase(), {
         method: "DELETE",
         headers: {
           "sessionID": sessionID
@@ -87,12 +87,13 @@ function Inventory() {
   function updateInputs(item: string) {
     setSearchQuery(item)
     if (item){
-      getInventory((item).replaceAll(" ", "").toLowerCase()).then((response) => {
+      getInventory(item).then((response) => {
         // if the server returned a valid response with an item name
         if (response[0] && response[0][1]){
           // if that item matches what the user has typed, update the inputs with the item data
-          if (response[0][1].toLowerCase() === item.toLowerCase()){
+          if (response[0][0] === item.replaceAll(" ","").toLowerCase()){
             setSearchSuggestionsEnabled(false)
+            setSearchQuery(response[0][1])
             setHaveAmount(response[0][2])
             setNeedAmount(response[0][3])
             setCheckWeekly(response[0][4])
@@ -172,10 +173,11 @@ function Inventory() {
           {/* button to submit data to the backend */}
           <button className="mt-6 ml-2 w-40 h-8 bg-oatnet-light rounded-lg" onClick={() => {
             if(searchQuery != "" && haveAmount != "" && needAmount != ""){
-              postInventory([searchQuery, haveAmount, needAmount, checkWeekly])
-              // if there's a filter on this URL, the user should be sent back to the reports page
-              if(searchParams.get("filter"))
+              postInventory([searchQuery, haveAmount, needAmount, checkWeekly]).then(()=>{
+                // if there's a filter on this URL, the user should be sent back to the reports page
+                if(searchParams.get("filter"))
                 navigate("/report?filter="+searchParams.get('filter'))
+              })
             }
             updateInputs("")
             setHaveAmount("")
@@ -212,10 +214,11 @@ function Inventory() {
               {/* button to delete data from the server */}
               <button className="w-28 h-8 ml-1 mb-2 bg-red-600 rounded-lg" onClick={() => {
                   if(searchQuery && searchQuery != ""){
-                    deleteInventory((searchQuery).replaceAll(" ", "-").toLowerCase(), )
-                    // if there's a filter on this URL, the user should be sent back to the reports page
-                    if(searchParams.get("filter"))
+                    deleteInventory((searchQuery)).then(() => {
+                      // if there's a filter on this URL, the user should be sent back to the reports page
+                      if(searchParams.get("filter"))
                       navigate("/report?filter="+searchParams.get('filter'))
+                    })
                   }
                   updateInputs("")
                   setHaveAmount("")

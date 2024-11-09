@@ -93,7 +93,7 @@ function Report() {
                       key={"row-"+row[1]} 
                       className="hover:ring hover:ring-white hover:ring-offset-4 hover:ring-offset-oatnet-background"
                       onClick={() => {
-                        navigate(searchParams.get("filter") ? "/inventory?item="+row[1]+"&filter="+searchParams.get("filter") : "/inventory?item="+row[1]+"&filter=all")
+                        navigate(searchParams.get("filter") ? "/inventory?item="+row[0]+"&filter="+searchParams.get("filter") : "/inventory?item="+row[0]+"&filter=all")
                       }}
                     >
                       <td key={row[1]} className="border-b border-r border-white border-solid">{row[1]}</td>
