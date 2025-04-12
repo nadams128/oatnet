@@ -161,7 +161,7 @@ function Inventory() {
 					setHaveAmount(e.target.value)
 				}}/>
 			</div>
-			{checkWeekly && amountNeededWeekly && <div className="mt-1">{"We need "+amountNeededWeekly+" of this item per serve :D"}</div>}
+			{!!(checkWeekly && amountNeededWeekly) && <div className="mt-1">{"We need "+amountNeededWeekly+" of this item per serve :D"}</div>}
 			{/* text input for the need property */}
 			<div className="mt-2">
 				<div className="w-12 float-left">Need: </div>
