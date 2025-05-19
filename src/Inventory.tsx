@@ -173,7 +173,11 @@ function Inventory() {
 			{/* button to submit data to the backend */}
 			<button className="mt-6 ml-2 w-40 h-8 bg-oatnet-foreground rounded-lg" onClick={() => {
 				if(searchQuery != "" && haveAmount != "" && needAmount != ""){
-					postInventory([searchQuery, haveAmount, needAmount, checkWeekly, amountNeededWeekly]).then(()=>{
+					let amountNeededWeeklyTemp = "0"
+					if (amountNeededWeekly){
+						amountNeededWeeklyTemp = amountNeededWeekly
+					}
+					postInventory([searchQuery, haveAmount, needAmount, checkWeekly, amountNeededWeeklyTemp]).then(()=>{
 						// if there's a filter on this URL, the user should be sent back to the reports page
 						if(searchParams.get("filter"))
 							navigate("/report?filter="+searchParams.get('filter'))
