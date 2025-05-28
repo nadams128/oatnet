@@ -15,11 +15,12 @@ export default {
 				'oatnet-background': 'rgb(35, 90, 56)',
 				'oatnet-foreground': 'rgb(49, 125, 82)',
 				'oatnet-text': 'rgb(255, 255, 255)',
-				'oatnet-button-text': 'rgb(0, 0, 0)',	
+				'oatnet-button-text': 'rgb(0, 0, 0)',
 			},
 			fontFamily: {
-				'rubik': ['Rubik Mono One Regular', 'sans-serif'],
-			}
+				'youngserif': ['Young Serif', 'sans-serif'],
+				'intervariabletext': ['Inter Variable Text', 'sans-serif'],
+			},
 		},
 	},
 	plugins: [],

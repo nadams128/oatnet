@@ -20,19 +20,17 @@ async function getUsers() {
 }
 
 // update the permissions for a given user
-async function changeUserPermissions(user:string, read:boolean, write:boolean) {
+async function changeUserPermissions(username:string, read:boolean, write:boolean) {
 	let sessionID = localStorage.getItem("sessionID")
-	let convertedRead:number = read ? 1 : 0
-	let convertedWrite:number = write ? 1 : 0
 	if (sessionID){
 		await fetch(serverDomain+"/auth", {
 			method: "POST",
 			headers: {
 				"Content-Type":"application/json",
 				"sessionID": sessionID,
-				"action": "change_permissions"
+				"action": "changepermissions"
 			},
-			body: JSON.stringify([user, convertedRead, convertedWrite])
+			body: JSON.stringify({username:username, read:read, write:write})
 		})
 	}
 }
@@ -54,7 +52,7 @@ export async function deleteUser(username:string) {
 
 // administrator panel, only available to the auto-generated 'administrator' user
 function Admin() {
-	const [usersData, setUsersData] = useState<any>()
+	const [usersData, setUsersData] = useState<any>({})
 
 	// attempt to get the user list, runs once on component load
 	useEffect(() => {
@@ -62,10 +60,8 @@ function Admin() {
 		getUsers().then((response)=>{
 			// if the server validates the user as the administrator, setup the usersData
 			if(response !== "You aren't an administrator"){
-				response.map((user:any[])=>{
-					let read = user[1]
-					let write = user[2]
-					responseData[user[0]] = {read:read, write:write}
+				response.map((user:any)=>{
+					responseData[user.username] = {read:user.read, write:user.write}
 				})
 				setUsersData(responseData)
 			}
@@ -85,8 +81,9 @@ function Admin() {
 				</thead>
 				<tbody>
 					{/* convert usersData into an array for iteration, then for each user in usersData, generate the row and the cells */}
-					{Object.entries(usersData).map((user:any[])=>{
+					{Object.entries(usersData).map((user:any)=>{
 						// set name to the first index, which contains the key of the original object
+						console.log(usersData)
 						const name = user[0]
 						/*
 							if the name exists, and it has a second index(this contains the value of usersData[name], which is an object),

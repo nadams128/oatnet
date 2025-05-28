@@ -11,7 +11,7 @@ export async function loginUser(username:string, password:string) {
 				"Content-Type":"application/json",
 				action:"login"
 			},
-			body: JSON.stringify([username, password]),
+			body: JSON.stringify({username:username, password:password}),
 	})
 	return serverResponse.json()
 }

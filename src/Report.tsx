@@ -1,7 +1,24 @@
 "use client";
 import { useEffect, useState } from 'react';
-import {getInventory} from "./Inventory";
 import {useSearchParams, useNavigate} from 'react-router-dom';
+import { serverDomain } from './App';
+
+async function getInventory(filter: string){
+	let serverResponse
+	let sessionID = localStorage.getItem("sessionID")
+	if(sessionID){
+		serverResponse = await fetch(serverDomain+"/inv?filter="+filter, {
+			method: "GET",
+			headers: {
+				"sessionID": sessionID
+			}
+		})
+		return serverResponse.json()
+	}
+	else{
+		return "No Session ID"
+	}
+}
 
 // component to view the status of the inventory, with a set of filters and an option to go to the inventory editor
 function Report() {
@@ -94,15 +111,15 @@ function Report() {
 					{serverData.map((row:any[]) => {
 						return(
 							<tr 
-								key={"row-"+row[1]} 
+								key={"row-"+row.name} 
 								className="hover:ring hover:ring-oatnet-text hover:ring-offset-4 hover:ring-offset-oatnet-background"
 								onClick={() => {
-									navigate(searchParams.get("filter") ? "/inventory?item="+row[0]+"&filter="+searchParams.get("filter") : "/inventory?item="+row[0]+"&filter=all")
+									navigate(searchParams.get("filter") ? "/inventory?item="+row.name+"&filter="+searchParams.get("filter") : "/inventory?item="+row.name+"&filter=all")
 								}}
 							>
-								<td key={row[1]} className="border-b border-r border-oatnet-text border-solid">{row[1]}</td>
-								<td key={row[1]+"-need"} className="border-b border-r border-oatnet-text border-solid pl-1">{row[2]}</td>
-								<td key={row[1]+"-have"} className="border-b border-oatnet-text border-solid pl-1">{row[3]}</td>
+								<td key={row.name} className="border-b border-r border-oatnet-text border-solid">{row.name}</td>
+								<td key={row.name+"-have"} className="border-b border-r border-oatnet-text border-solid pl-1">{row.have+" "+row.unit}</td>
+								<td key={row.name+"-need"} className="border-b border-oatnet-text border-solid pl-1">{row.need+" "+row.unit}</td>
 							</tr>
 						)
 					})

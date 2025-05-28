@@ -4,7 +4,7 @@ import {
 } from "react-router-dom";
 
 // change this address to the address of the oatnet-server that you want to connect to
-export const serverDomain = "http://127.0.0.1:5000"
+export const serverDomain = "http://localhost:8080"
 
 // creates the context used for the login page's 'loggedIn' state variable
 export const LoginContext = createContext({})
@@ -14,21 +14,21 @@ function getTitle(registered:boolean, loggedIn:boolean){
 	let location = useLocation()
 	switch (location.pathname){
 		case "/":
-			return (loggedIn ? "Oatnet/Report" : (registered ? "Oatnet/Login" : "Oatnet/Register"))
+			return (loggedIn ? "OATNET/REPORT" : (registered ? "OATNET/REPORT" : "OATNET/REGISTER"))
 		case "/inventory":
-			return "Oatnet/Inventory"
+			return "OATNET/INVENTORY"
 		case "/report":
-			return "Oatnet/Report"
+			return "OATNET/REPORT"
 		case "/login":
-			return loggedIn ? "Oatnet/Logout" : "Oatnet/Login"
+			return loggedIn ? "OATNET/LOGOUT" : "OATNET/LOGIN"
 		case "/admin":
-			return "Oatnet/Admin"
+			return "OATNET/ADMIN"
 		case "/search":
-			return "Oatnet/Search"
+			return "OATNET/SEARCH"
 		case "/add":
-			return "Oatnet/Add"
+			return "OATNET/ADD"
 		default:
-			return "Oatnet"
+			return "OATNET"
 	}
 }
 
@@ -37,7 +37,7 @@ function App({children}:any) {
 	const [loggedIn, setLoggedIn] = useState<boolean>(localStorage.getItem("sessionID")!==null)
 	return (
 		<LoginContext.Provider value={{loggedIn,setLoggedIn}}>
-			<div className='w-full h-full bg-oatnet-background text-oatnet-text p-px'>
+			<div className="w-full h-full bg-oatnet-background text-oatnet-text p-px font-intervariabletext">
 				{/* hamburger menu button, constructed out of div elements */}
 				<div className="flex flex-row justify-between">
 					<div onClick={() => {setShowMenu(!showMenu)}} className="w-fit h-fit">
@@ -56,36 +56,31 @@ function App({children}:any) {
 
 				{/* menu, shown/hidden by the menu button */}
 				{showMenu && 
-					<div className="flex flex-wrap:wrap flex-col select-none">
+					<div className="flex flex-wrap:wrap flex-col select-none font-youngserif ml-2">
 						{/* set displayed component to the report page via routing */}
-						{localStorage.getItem("sessionID") && <div className="flex justify-center font-rubik text-lg" onClick={() => {
+						{localStorage.getItem("sessionID") && <div className="flex text-lg" onClick={() => {
 							setShowMenu(false)
 						}}>
-							<Link to="/report">Report</Link>
+							<Link to="/report">/REPORT</Link>
 						</div>}
 
 						{/* set displayed component to the login page via routing */}
-						<div className="flex justify-center font-rubik text-lg" onClick={() => {
+						<div className="flex text-lg" onClick={() => {
 							setShowMenu(false)
 						}}>
-							<Link to="/login">{(localStorage.getItem("sessionID") ? "Logout" : (localStorage.getItem("username") ? "Login" : "Register"))}</Link>
+							<Link to="/login">{(localStorage.getItem("sessionID") ? "/LOGOUT" : (localStorage.getItem("username") ? "/LOGIN" : "/REGISTER"))}</Link>
 						</div>
 
 						{/* set displayed component to the admin panel via routing */}
-						{localStorage.getItem("sessionID") && localStorage.getItem("username") === "administrator" && <div className="flex justify-center font-rubik text-lg" onClick={() => {
+						{localStorage.getItem("sessionID") && localStorage.getItem("username") === "administrator" && <div className="flex text-lg" onClick={() => {
 							setShowMenu(false)
 						}}>
-							<Link to="/admin">Admin Panel</Link>
+							<Link to="/admin">/ADMIN</Link>
 						</div>}
-
-						{/* divider */}
-						<div className="flex flex-wrap:nowrap justify-center select-none">
-						----------------------------
-						</div>
 					</div>
 }
 				{/* page title */}
-				<div className={("flex justify-center font-rubik select-none text-2xl mb-4")}>{getTitle(localStorage.getItem("username")!==null, loggedIn)}</div>
+				<div className={("flex justify-center font-youngserif select-none text-2xl mb-4")}>{getTitle(localStorage.getItem("username")!==null, loggedIn)}</div>
 				{/* currently selected component is passed in as a child via routing */}
 				{children}
 			</div>

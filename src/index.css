@@ -3,6 +3,10 @@
 @tailwind utilities;
 
 @font-face{
-	font-family: "Rubik Mono One Regular";
-	src: url("/assets/RubikMonoOne-Regular.ttf");
+	font-family: "Young Serif";
+	src: url("/assets/YoungSerif.ttf");
+};
+@font-face{
+	font-family: "Inter Variable Text";
+	src: url("/assets/InterVariable.ttf");
 };
