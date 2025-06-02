@@ -60,17 +60,9 @@ function Report() {
 		{/* if the server returned a response and doesn't indicate the user not having permissions, render inputs */}
 		{serverData && serverData[0]!=="You don't have permissions for that!" ? <div className="flex flex-col">
 			{/* button to refresh the displayed data with new changes from the server */}
-			<button className="mt-2 ml-2 w-32 h-8 bg-oatnet-foreground rounded-lg select-none" onClick={() => {
-				const filter = searchParams.get("filter")
-				getInventory(filter ? filter : "all").then((response) => {
-					setServerData(response)
-				})
-			}}>
-				Refresh
-			</button>
-			<div>
+			<div className="flex">
 				{/* button to set the filter to all items */}
-					<button className="mt-5 ml-2 w-20 h-8 bg-oatnet-foreground rounded-lg select-none" onClick={() => {
+					<button className="ml-2 w-20 h-8 bg-oatnet-foreground rounded-lg select-none" onClick={() => {
 						getInventory("all").then((response) => {
 							setServerData(response)
 							navigate("/report?filter=all")
@@ -79,7 +71,7 @@ function Report() {
 						All
 					</button>
 				{/* button to set the filter to just the weekly items */}
-				<button className="mt-5 ml-2 w-24 h-8 bg-oatnet-foreground rounded-lg select-none" onClick={() => {
+				<button className="ml-2 w-24 h-8 bg-oatnet-foreground rounded-lg select-none" onClick={() => {
 					getInventory("weekly").then((response) => {
 						setServerData(response)
 						navigate("/report?filter=weekly")
@@ -88,13 +80,21 @@ function Report() {
 					Weekly
 				</button>
 				{/* button to set the filter to just the needed items */}
-				<button className="mt-5 ml-2 w-24 h-8 bg-oatnet-foreground rounded-lg select-none" onClick={() => {
+				<button className="ml-2 w-24 h-8 bg-oatnet-foreground rounded-lg select-none" onClick={() => {
 					getInventory("needed").then((response) => {
 						setServerData(response)
 						navigate("/report?filter=needed")
 					})
 				}}>
 					Needed
+				</button>
+				<button className="ml-2 w-8 h-8 bg-oatnet-foreground rounded-lg select-none" onClick={() => {
+					const filter = searchParams.get("filter")
+					getInventory(filter ? filter : "all").then((response) => {
+						setServerData(response)
+					})
+				}}>
+					<img className="inline" src="/assets/refresh.svg"/>
 				</button>
 			</div>
 			{/* table to display the report results */}

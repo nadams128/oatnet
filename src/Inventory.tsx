@@ -78,6 +78,13 @@ function Inventory() {
 	const [settingsPanelOpen, setSettingsPanelOpen] = useState<boolean>(false)
 	const [searchSuggestionsEnabled, setSearchSuggestionsEnabled] = useState<boolean>(false)
 	const [editing, setEditing] = useState<boolean>(false)
+	const [inputValidityMap, setInputValidityMap] = useState<any>({
+		"searchInput": true,
+		"haveInput": true,
+		"needInput": true,
+		"unitInput": true,
+	})
+	const formInvalid = !(inputValidityMap.searchInput && inputValidityMap.haveInput && inputValidityMap.needInput && inputValidityMap.unitInput)
 	const [searchParams] = useSearchParams()
 	const navigate = useNavigate()
 	const location = useLocation()
@@ -157,7 +164,8 @@ function Inventory() {
 			{((haveAmount !== undefined && needAmount !== undefined)) && <div className="flex flex-col items-center mt-2 select-none">
 				<div>
 					{/* search box for items */}
-					<input id="searchBox" readOnly={editing ? true : false} className="w-72 pl-1 bg-oatnet-foreground rounded-lg select-none" placeholder={addingNewItem ? 'Oats, Soap, Socks, etc.' : 'Search'} value={searchQuery ? searchQuery:""} list="searchResults" autoComplete="off" onChange={ e => {
+					<input id="searchInput" readOnly={editing ? true : false} className={"w-72 pl-1 bg-oatnet-foreground rounded-lg select-none"+(!inputValidityMap.searchInput && " bg-oatnet-invalid text-oatnet-text-dark placeholder-oatnet-placeholder-dark")}  placeholder={addingNewItem ? 'Oats, Soap, Socks, etc.' : 'Search'} value={searchQuery ? searchQuery:""} list="searchResults" autoComplete="off" onChange={ e => {
+						setInputValidityMap({...inputValidityMap, "searchInput":true})
 						updateInputs(e.target.value)
 					}}/>
 					{/* the datalist is populated with search results based on the text in the input */}
@@ -170,33 +178,36 @@ function Inventory() {
 
 				{/* text input for the have property */}
 				<div className="mt-6 mb-2">
-					<div className="w-12 float-left">Have: </div>
-					<input id="haveBox" className="w-16 pl-1 bg-oatnet-foreground rounded-lg" type="number" placeholder="16" value={haveAmount!==undefined ? haveAmount:""} autoComplete="off" onChange={e => {
-						setHaveAmount(parseFloat(e.target.value))
+					<div className="float-left">Have:</div>
+					<input id="haveInput" className={"w-16 pl-1 ml-1 bg-oatnet-foreground rounded-lg select-none"+(!inputValidityMap.haveInput && " bg-oatnet-invalid text-oatnet-text-dark placeholder-oatnet-placeholder-dark")} type="number" placeholder="16" value={haveAmount!==undefined ? haveAmount:""} autoComplete="off" onChange={e => {
+						setInputValidityMap({...inputValidityMap, "haveInput":true})
+						setHaveAmount(isNaN(parseFloat(e.target.value)) ? "" : parseFloat(e.target.value))
 					}}/>
 					<div className="w-12 pl-1 float-right">{unit}</div>
 				</div>
-				{!!(checkWeekly && amountNeededWeekly) && <div className="mt-1">{"We need "+amountNeededWeekly+" "+unit+" of this item per serve :D"}</div>}
+				{!!(checkWeekly && amountNeededWeekly) && <div>{"We need "+amountNeededWeekly+" "+unit+" of this item per serve :D"}</div>}
 				{/* text input for the need property */}
 				<div className="mt-2 mb-2">
-					<div className="w-12 float-left">Need: </div>
-					<input id="needBox" className="w-16 pl-1 bg-oatnet-foreground rounded-lg" type="number" placeholder="16" value={needAmount!==undefined ? needAmount:""} autoComplete="off" onChange={ e => {
-						setNeedAmount(parseFloat(e.target.value))
+					<div className="float-left">Need:</div>
+					<input id="needInput" className={"w-16 pl-1 ml-1 bg-oatnet-foreground rounded-lg select-none"+(!inputValidityMap.needInput && " bg-oatnet-invalid text-oatnet-text-dark placeholder-oatnet-placeholder-dark")} type="number" placeholder="16" value={needAmount!==undefined ? needAmount:""} autoComplete="off" onChange={ e => {
+						setInputValidityMap({...inputValidityMap, "needInput":true})
+						setNeedAmount(isNaN(parseFloat(e.target.value)) ? "" : parseFloat(e.target.value))
 					}}/>
 					<div className="w-12 pl-1 float-right">{unit}</div>
 				</div>
 				{/* input to set the units of an item */}
 				{addingNewItem && <><div className="mt-2 mb-2">
 					<div className="float-left">Unit (Plural):</div>
-					<input id="unitInput" className="w-36 ml-2 px-1 bg-oatnet-foreground rounded-lg" placeholder="pairs, oz, etc." value={unit!==undefined ? unit:""} autoComplete="off" onChange={e => {
+					<input id="unitInput" className={"w-36 pl-1 ml-1 bg-oatnet-foreground rounded-lg select-none"+(!inputValidityMap.unitInput && " bg-oatnet-invalid text-oatnet-text-dark placeholder-oatnet-placeholder-dark")} placeholder="pairs, oz, etc." value={unit!==undefined ? unit:""} autoComplete="off" onChange={e => {
+						setInputValidityMap({...inputValidityMap, "unitInput":true})
 						setUnit(e.target.value)
 					}}/>
 				</div>
 				{/* input to set how many of an item we need to restock weekly */}
 				<div className="mt-2 mb-2">
 					<div className="float-left">Needed Weekly:</div>
-					<input id="amountNeededWeeklyInput" className="w-32 ml-2 px-1 bg-oatnet-foreground rounded-lg" type="number" placeholder="16" value={amountNeededWeekly!==undefined ? amountNeededWeekly:""} autoComplete="off" onChange={e => {
-						setAmountNeededWeekly(parseFloat(e.target.value))
+					<input id="amountNeededWeeklyInput" className="w-16 pl-1 ml-1 bg-oatnet-foreground rounded-lg select-none" type="number" placeholder="16" value={amountNeededWeekly!==undefined ? amountNeededWeekly:""} autoComplete="off" onChange={e => {
+						setAmountNeededWeekly(isNaN(parseFloat(e.target.value)) ? "" : parseFloat(e.target.value))
 					}}/>
 				</div>
 				{/* checkbox to mark an item as one to check the status of weekly */}
@@ -204,15 +215,16 @@ function Inventory() {
 					<div className="">
 						Check Weekly?:
 					</div>
-					<div className="w-5 h-5 ml-2 bg-oatnet-foreground rounded-md flex items-center justify-center" onClick={() => {
+					<div id="checkWeeklyInput" className="w-5 h-5 ml-2 bg-oatnet-foreground rounded-md flex items-center justify-center" onClick={() => {
 						setCheckWeekly(!checkWeekly)
 					}}>
 						{checkWeekly ? <img className="oatnet-text" src="/assets/check.svg" alt="Checkmark"/> : ""}
 					</div>
 				</div></>}
+				{formInvalid && <div className="p-1 mt-2 mb-2 rounded-md border-4 border-oatnet-invalid">Please fill in the required fields!</div>}
 				{/* button to submit data to the backend */}
-				<button className="mt-4 ml-2 w-40 h-8 bg-oatnet-foreground rounded-lg" onClick={() => {
-					if(searchQuery != "" && haveAmount != null && needAmount != null && unit != ""){
+				<button id="submitButton" className="mt-4 ml-2 w-40 h-8 bg-oatnet-foreground rounded-lg" onClick={() => {
+					if(searchQuery != "" && haveAmount !== "" && needAmount !== "" && unit != ""){
 						postInventory({
 							name: searchQuery,
 							have: haveAmount,
@@ -233,6 +245,20 @@ function Inventory() {
 							setEditing(false)
 						})
 					}
+					else {
+						let inputValidityMapLocal = {...inputValidityMap}
+						if (searchQuery === "")
+							inputValidityMapLocal = {...inputValidityMapLocal, "searchInput":false}
+						if (haveAmount === "")
+							inputValidityMapLocal = {...inputValidityMapLocal, "haveInput":false}
+						if (needAmount === "")
+							inputValidityMapLocal = {...inputValidityMapLocal, "needInput":false}
+						if (unit === ""){
+							inputValidityMapLocal = {...inputValidityMapLocal, "unitInput":false}
+							setSettingsPanelOpen(true)
+						}
+						setInputValidityMap(inputValidityMapLocal)
+					}
 				}}>
 					{editing ? "Update" : "Submit"}
 				</button>
@@ -245,14 +271,14 @@ function Inventory() {
 						{settingsPanelOpen ? "-": "+"}
 					</button> 
 					<div className="inline-block">
-						<div className='mr-1 inline-block'>Settings:</div>
-						{!settingsPanelOpen && <div className="w-36 h-1 mb-1 bg-oatnet-text rounded-lg inline-block"></div>}
+						<div className="mr-1 inline-block">{settingsPanelOpen ? "<- Close Settings" : "<- Additional Settings"}</div>
 					</div>
 					{settingsPanelOpen && <div className="w-68 rounded-lg flex flex-col flex-wrap items-center">
 						{/* input to set the units of an item */}
-						<div className="mt-2 mx-1 mb-2">
+						<div className="mt-2 mb-2">
 							<div className="float-left">Unit (Plural):</div>
-							<input id="unitInput" className="w-36 ml-2 px-1 bg-oatnet-foreground rounded-lg" placeholder="pairs, oz, etc." value={unit!==undefined ? unit:""} autoComplete="off" onChange={e => {
+							<input id="unitInput" className={"w-36 pl-1 ml-1 bg-oatnet-foreground rounded-lg select-none"+(!inputValidityMap.unitInput && " bg-oatnet-invalid text-oatnet-text-dark placeholder-oatnet-placeholder-dark")} placeholder="pairs, oz, etc." value={unit!==undefined ? unit:""} autoComplete="off" onChange={e => {
+								setInputValidityMap({...inputValidityMap, "unitInput":true})
 								setUnit(e.target.value)
 							}}/>
 						</div>
@@ -260,7 +286,7 @@ function Inventory() {
 						<div className="mt-2 mx-1 mb-2">
 							<div className="float-left">Needed Weekly:</div>
 							<input id="amountNeededWeeklyInput" className="w-32 ml-2 px-1 bg-oatnet-foreground rounded-lg" type="number" placeholder="16" value={amountNeededWeekly!==undefined ? amountNeededWeekly:""} autoComplete="off" onChange={e => {
-								setAmountNeededWeekly(parseFloat(e.target.value))
+								setAmountNeededWeekly(isNaN(parseFloat(e.target.value)) ? "" : parseFloat(e.target.value))
 							}}/>
 						</div>
 						{/* checkbox to mark an item as one to check the status of weekly */}

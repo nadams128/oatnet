@@ -12,10 +12,13 @@ export default {
 				'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
 			},
 			colors: {
-				'oatnet-background': 'rgb(35, 90, 56)',
-				'oatnet-foreground': 'rgb(49, 125, 82)',
-				'oatnet-text': 'rgb(255, 255, 255)',
-				'oatnet-button-text': 'rgb(0, 0, 0)',
+				'oatnet-background': '#235a38',
+				'oatnet-foreground': '#317d52',
+				'oatnet-text-light': '#FFFFFF',
+				'oatnet-placeholder-light': '#757575',
+				'oatnet-text-dark': '#000000',
+				'oatnet-placeholder-dark': '#666666',
+				'oatnet-invalid': '#ff6161',
 			},
 			fontFamily: {
 				'youngserif': ['Young Serif', 'sans-serif'],

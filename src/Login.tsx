@@ -48,7 +48,7 @@ function Login() {
 			
 			{/* text input for the username property */}
 			{!loggedIn && <div className="mt-6">
-				<div className="w-20 float-left">Username: </div>
+				<div className="w-24 float-left">Username: </div>
 				<input id="usernameBox" className="w-48 pl-1 bg-oatnet-foreground rounded-lg" placeholder='oat200' value={username ? username:""} onChange={e => {
 					setUsername(e.target.value)
 				}}/>
@@ -56,7 +56,7 @@ function Login() {
 
 			{/* text input for the password property */}
 			{!loggedIn && <div className="mt-4">
-				<div className="w-20 float-left">Password: </div>
+				<div className="w-24 float-left">Password: </div>
 				<input id="passwordBox" type="password" className="w-48 pl-1 bg-oatnet-foreground rounded-lg" placeholder='123password321' value={password ? password:""} onChange={ e =>{
 					setPassword(e.target.value)
 				}}/>
