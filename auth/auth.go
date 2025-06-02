@@ -36,7 +36,6 @@ func CheckPermissions(sessionID string, conn *pgx.Conn) (bool, bool){
 	if scanErr != nil {
 		fmt.Println("Error scanning in username in CheckPermissions: ", scanErr)
 	}
-	fmt.Println(username)
 	row = conn.QueryRow(context.Background(), "SELECT read, write FROM users WHERE UPPER(username) LIKE UPPER($1);", username)
 	var read bool
 	var write bool

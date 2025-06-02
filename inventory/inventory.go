@@ -49,7 +49,6 @@ func getInventory(w http.ResponseWriter, r *http.Request, conn *pgx.Conn) {
 		sessionID = sessionIDHeader[0]
 	}
 	read, _ := auth.CheckPermissions(sessionID, conn)
-	fmt.Println(read)
 	if read {
 		item, itemParam := r.Form["item"]
 		filter, filterParam := r.Form["filter"]
