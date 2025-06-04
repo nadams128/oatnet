@@ -1,4 +1,4 @@
-module github.com/nadams128/oatnetserver
+module github.com/nadams128/oatnet/server
 
 go 1.24.2
 

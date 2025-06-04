@@ -9,7 +9,7 @@ import(
 	"io/ioutil"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
-	"github.com/nadams128/oatnetserver/auth"
+	"github.com/nadams128/oatnet/server/auth"
 )
 
 type inventoryItem struct {

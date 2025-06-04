@@ -1,8 +1,8 @@
 package main
 
 import(
-	"github.com/nadams128/oatnetserver/inventory"
-	"github.com/nadams128/oatnetserver/auth"
+	"github.com/nadams128/oatnet/server/inventory"
+	"github.com/nadams128/oatnet/server/auth"
 	"net/http"
 	"fmt"
 	"bufio"
