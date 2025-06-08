@@ -108,7 +108,7 @@ function Report() {
 				</thead>
 				<tbody>
 					{/* for each row of data returned, generate the rows and data cells */}
-					{serverData.map((row:any[]) => {
+					{serverData.map((row:any) => {
 						return(
 							<tr 
 								key={"row-"+row.name} 

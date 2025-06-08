@@ -70,11 +70,11 @@ async function deleteInventory(item: string){
 function Inventory() {
 	const [serverData, setServerData] = useState<any[]>()
 	const [searchQuery, setSearchQuery] = useState<string>("")
-	const [needAmount, setNeedAmount] = useState<number>()
-	const [haveAmount, setHaveAmount] = useState<number>()
+	const [needAmount, setNeedAmount] = useState<number | string>()
+	const [haveAmount, setHaveAmount] = useState<number | string>()
 	const [unit, setUnit] = useState<string>()
 	const [checkWeekly, setCheckWeekly] = useState<boolean>(false)
-	const [amountNeededWeekly, setAmountNeededWeekly] = useState<number>()
+	const [amountNeededWeekly, setAmountNeededWeekly] = useState<number | string>()
 	const [settingsPanelOpen, setSettingsPanelOpen] = useState<boolean>(false)
 	const [searchSuggestionsEnabled, setSearchSuggestionsEnabled] = useState<boolean>(false)
 	const [editing, setEditing] = useState<boolean>(false)
@@ -310,8 +310,8 @@ function Inventory() {
 								})
 							}
 							updateInputs("")
-							setHaveAmount(null)
-							setNeedAmount(null)
+							setHaveAmount("")
+							setNeedAmount("")
 							setUnit("")
 							setCheckWeekly(false)
 						}}>
