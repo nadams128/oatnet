@@ -1,8 +1,30 @@
+/*
+Oatnet - A utility application for mutual aid organizations
+Copyright (C) 2025 Oatnet
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 "use client";
 import { useEffect, useState } from 'react';
 import {useSearchParams, useNavigate} from 'react-router-dom';
 import { serverDomain } from './App';
 
+/**
+ * Gets a list of items from the server based on a filter
+ * @param {string} filter - the tag of the filter you want to filter by
+ */
 async function getInventory(filter: string){
 	let serverResponse
 	let sessionID = localStorage.getItem("sessionID")
@@ -88,6 +110,7 @@ function Report() {
 				}}>
 					Needed
 				</button>
+				{/* button to refresh whatever data the user is currently viewing*/}
 				<button className="ml-2 w-8 h-8 bg-oatnet-foreground rounded-lg select-none" onClick={() => {
 					const filter = searchParams.get("filter")
 					getInventory(filter ? filter : "all").then((response) => {
@@ -126,7 +149,7 @@ function Report() {
 					}
 				</tbody>
 			</table>
-			{/* if the user doesn't have permissions, let them know */}
+		{/* if the user doesn't have permissions, let them know */}
 		</div> : serverData && serverData[0]==="You don't have permissions for that!" && <div className=" ml-8 mr-8 text-center">You don't have permissions to view this page! Please contact your Oatnet administrator for read and/or write permissions!</div>}
 	</>)
 }

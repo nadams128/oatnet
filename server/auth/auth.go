@@ -1,3 +1,19 @@
+//Oatnet - A utility application for mutual aid organizations
+//Copyright (C) 2025 Oatnet
+
+//This program is free software: you can redistribute it and/or modify
+//it under the terms of the GNU Affero General Public License as published by
+//the Free Software Foundation, either version 3 of the License, or
+//(at your option) any later version.
+
+//This program is distributed in the hope that it will be useful,
+//but WITHOUT ANY WARRANTY; without even the implied warranty of
+//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//GNU Affero General Public License for more details.
+
+//You should have received a copy of the GNU Affero General Public License
+//along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 package auth
 
 import(
@@ -11,7 +27,8 @@ import(
 	"crypto/rand"
 )
 
-func RequestHandler(w http.ResponseWriter, r *http.Request){
+// Takes a writer and a request, then routes to the proper function based on the HTTP method.
+func RequestHandler(w http.ResponseWriter, r *http.Request) {
 	conn, connectionError := pgx.Connect(context.Background(), "postgres://oatnet:password@127.0.0.1/oatnet")
 	if connectionError != nil {
 		fmt.Println("connectionError: ", connectionError)
@@ -29,7 +46,9 @@ func RequestHandler(w http.ResponseWriter, r *http.Request){
 	}
 }
 
-func CheckPermissions(sessionID string, conn *pgx.Conn) (bool, bool){
+// Takes a sessionID and returns a pair of booleans (read, write) representing the permissions of
+// the user that the sessionID belongs to
+func CheckPermissions(sessionID string, conn *pgx.Conn) (bool, bool) {
 	row := conn.QueryRow(context.Background(), "SELECT username FROM sessions WHERE sessionid=$1;", sessionID)
 	var username string
 	scanErr := row.Scan(&username)
@@ -46,7 +65,8 @@ func CheckPermissions(sessionID string, conn *pgx.Conn) (bool, bool){
 	return read, write
 }
 
-func getUser(w http.ResponseWriter, r *http.Request, conn *pgx.Conn){
+// Retrieves all users as long as the requesting user is an administrator
+func getUser(w http.ResponseWriter, r *http.Request, conn *pgx.Conn) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	sessionIDHeader := r.Header["Sessionid"]
 	var sessionID string
@@ -74,6 +94,7 @@ func getUser(w http.ResponseWriter, r *http.Request, conn *pgx.Conn){
 			var username string
 			var read bool
 			var write bool
+			// iterate through the rows requested from the database and format each entry into an getUser object
 			allUsers, rowsCollectErr := pgx.CollectRows(rows, func(row pgx.CollectableRow) (getUser, error) {
 				err := row.Scan(&username, &read, &write)
 				return getUser{username, read, write}, err
@@ -90,7 +111,8 @@ func getUser(w http.ResponseWriter, r *http.Request, conn *pgx.Conn){
 	}
 }
 
-func postUser(w http.ResponseWriter, r *http.Request, conn *pgx.Conn){
+// Adds a user to the server
+func postUser(w http.ResponseWriter, r *http.Request, conn *pgx.Conn) {
 	actionHeader := r.Header["Action"]
 	var action string
 	if actionHeader != nil {
@@ -98,11 +120,12 @@ func postUser(w http.ResponseWriter, r *http.Request, conn *pgx.Conn){
 	}
 	var sessionID string
 	var username string
+	// read the body in as bytes so it can be converted into a usable object
 	receivedBytes, readErr := ioutil.ReadAll(r.Body)
 	if readErr != nil {
 		fmt.Println("read error: ", readErr)
 	}
-	if action == "login"{
+	if action == "login" {
 		type loginUser struct {
 			Username string `json:"username"`
 			Password string `json:"password"`
@@ -117,6 +140,7 @@ func postUser(w http.ResponseWriter, r *http.Request, conn *pgx.Conn){
 		if scanErr != nil {
 			fmt.Println("Error scanning user when checking if they exist: ", scanErr)
 		}
+		// if the user already exists
 		if username != "" {
 			var storedPassword string
 			var row = conn.QueryRow(context.Background(), "SELECT password FROM users WHERE UPPER(username) LIKE UPPER($1);", username)
@@ -134,6 +158,7 @@ func postUser(w http.ResponseWriter, r *http.Request, conn *pgx.Conn){
 			} else if wrongPasswordErr != nil {
 				fmt.Println("Wrong password error: ", wrongPasswordErr)
 			}
+		// if the user doesn't already exist
 		} else if username == "" {
 			hash, hashErr := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 			if hashErr != nil {
@@ -195,9 +220,11 @@ func postUser(w http.ResponseWriter, r *http.Request, conn *pgx.Conn){
 	w.Write(jsonResponse)
 }
 
-func deleteUser(w http.ResponseWriter, r *http.Request, conn *pgx.Conn){
+// Deletes an existing user
+func deleteUser(w http.ResponseWriter, r *http.Request, conn *pgx.Conn) {
 	var user string
 	var response string
+	// read the body in as bytes so it can be converted into a string
 	receivedBytes, readErr := ioutil.ReadAll(r.Body)
 	if readErr != nil {
 		fmt.Println("read error: ", readErr)
@@ -220,8 +247,8 @@ func deleteUser(w http.ResponseWriter, r *http.Request, conn *pgx.Conn){
 		}
 		if username == "administrator" {
 			var deleteErr error
-			_, deleteErr = conn.Exec(context.Background(), "DELETE FROM users WHERE username=$1;", username)
-			_, deleteErr = conn.Exec(context.Background(), "DELETE FROM sessions WHERE username=$1;", username)
+			_, deleteErr = conn.Exec(context.Background(), "DELETE FROM users WHERE username=$1;", user)
+			_, deleteErr = conn.Exec(context.Background(), "DELETE FROM sessions WHERE username=$1;", user)
 			if deleteErr != nil {
 				fmt.Println("Error deleting user: ", deleteErr)
 			}
@@ -235,7 +262,8 @@ func deleteUser(w http.ResponseWriter, r *http.Request, conn *pgx.Conn){
 	w.Write(jsonResponse)
 }
 
-func optionsUser(w http.ResponseWriter){
+// Returns the options that the browser asks for in its preflight requests
+func optionsUser(w http.ResponseWriter) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, sessionID, action")
 	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, POST, DELETE")

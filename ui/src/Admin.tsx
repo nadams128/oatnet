@@ -1,8 +1,28 @@
+/*
+Oatnet - A utility application for mutual aid organizations
+Copyright (C) 2025 Oatnet
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 "use client";
 import { useState, useEffect } from "react";
 import { serverDomain } from './App';
 
-// get the list of users
+/**
+ * Gets the list of users from the server
+ */
 async function getUsers() {
 	let sessionID = localStorage.getItem("sessionID")
 	if (sessionID){
@@ -19,7 +39,12 @@ async function getUsers() {
 	}
 }
 
-// update the permissions for a given user
+/**
+ * Update the permissions of a given user
+ * @param {string} username - the username of the user whose permissions are being changed
+ * @param {boolean} read - what you want to set the user's read permission to
+ * @param {boolean} write - what you want to set the user's write permission to
+ */
 async function changeUserPermissions(username:string, read:boolean, write:boolean) {
 	let sessionID = localStorage.getItem("sessionID")
 	if (sessionID){
@@ -35,7 +60,10 @@ async function changeUserPermissions(username:string, read:boolean, write:boolea
 	}
 }
 
-// delete a given user
+/**
+ * Delete a given user
+ * @param {string} username - the username of the user being deleted
+ */
 export async function deleteUser(username:string) {
 	let sessionID = localStorage.getItem("sessionID")
 	if (sessionID){
@@ -70,6 +98,7 @@ function Admin() {
 
 	return(
 		usersData && <div className="flex flex-col">
+			{/* table showing users and their permissions */}
 			<table className="mt-5 mx-2">
 				<thead>
 					<tr>
@@ -83,7 +112,6 @@ function Admin() {
 					{/* convert usersData into an array for iteration, then for each user in usersData, generate the row and the cells */}
 					{Object.entries(usersData).map((user:any)=>{
 						// set name to the first index, which contains the key of the original object
-						console.log(usersData)
 						const name = user[0]
 						/*
 							if the name exists, and it has a second index(this contains the value of usersData[name], which is an object),
@@ -99,7 +127,7 @@ function Admin() {
 										<div className="flex flex-row justify-center">
 											<div className="w-6 h-6 my-0.5 bg-oatnet-foreground rounded-md flex items-center justify-center" onClick={() => {
 												/*
-													set usersData to a new object, which has all the values of the original, but with 
+													set usersData to a new object, which has all the values of the original, but with
 													the specified user's key swapped out for a new object with the updated values
 												*/
 												setUsersData({...usersData,[name]:{read:!read, write:write}})
@@ -113,7 +141,7 @@ function Admin() {
 										<div className="flex flex-row justify-center">
 											<div className="w-6 h-6 my-0.5 bg-oatnet-foreground rounded-md flex items-center justify-center" onClick={() => {
 												/*
-													set usersData to a new object, which has all the values of the original, but with 
+													set usersData to a new object, which has all the values of the original, but with
 													the specified user's key swapped out for a new object with the updated values
 												*/
 												setUsersData({...usersData,[name]:{read:read, write:!write}})
@@ -127,7 +155,7 @@ function Admin() {
 										<div className="flex flex-row justify-center">
 											<div className="w-6 h-6 my-0.5 bg-oatnet-foreground rounded-md flex items-center justify-center" onClick={() => {
 												/*
-													set usersData to a new object, which has all the values of the original, but with 
+													set usersData to a new object, which has all the values of the original, but with
 													the specified user's key swapped out for a null value
 												*/
 												setUsersData({...usersData,[name]:null})

@@ -1,22 +1,41 @@
+/*
+Oatnet - A utility application for mutual aid organizations
+Copyright (C) 2025 Oatnet
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 "use client";
 import { useEffect, useState } from 'react';
 import {useSearchParams, useNavigate, useLocation} from "react-router-dom";
 import { serverDomain } from './App';
 
-// get details of an inventory item from the backend
+/**
+ * Gets details of an inventory item from the backend
+ * @param {string} item - the name of the item to be retrieved, if the string is empty, every item is returned
+ */
 async function getInventory(item: string){
 	let serverResponse
 	let sessionID = localStorage.getItem("sessionID")
 	if(sessionID){
-		// if there's no item specified in the url, send a request to the server along with the user's sessionID
-		if (item === "" || item === "all" || item === undefined)
+		if (item === "" || item === undefined)
 			serverResponse = await fetch(serverDomain+"/inv", {
 				method: "GET",
 				headers: {
 					"sessionID": sessionID
 				}
 			})
-		// if there is an item specified in the url, send a request to the server along with the user's sessionID
 		else
 			serverResponse = await fetch(serverDomain+"/inv?item="+item, {
 				method: "GET",
@@ -31,11 +50,13 @@ async function getInventory(item: string){
 	}
 }
 
-// send a new/updated item to the server for storage
+/**
+ * Send a new or updated item to the server for storage
+ * @param {any} itemData - an object containing the data for the item being sent
+ */
 async function postInventory(itemData: any){
 	let sessionID = localStorage.getItem("sessionID")
 	if(sessionID){
-		// send item data to the server along with the sessionID
 		await fetch(serverDomain+"/inv", {
 			method: "POST",
 			headers: {
@@ -50,11 +71,13 @@ async function postInventory(itemData: any){
 	}
 }
 
-// delete a new/existing item from the server
+/**
+ * Delete a new/existing item from the server
+ * @param {string} item - the name of the item to be deleted
+ */
 async function deleteInventory(item: string){
 	let sessionID = localStorage.getItem("sessionID")
 	if(sessionID){
-		// send delete request to the server along with the sessionID
 		await fetch(serverDomain+"/inv?item="+item, {
 			method: "DELETE",
 			headers: {
@@ -89,11 +112,12 @@ function Inventory() {
 	const navigate = useNavigate()
 	const location = useLocation()
 	const addingNewItem = location.pathname=='/add'
-	/* 
-		get an item's data from the server, and update the UI with the resulting data 
 
-		if the user's input doesn't match an existing inventory item, keep the inputs empty
-	*/
+	/** 
+	 * Get an item's data from the server, and update the UI with the resulting data 
+	 * If the user's input doesn't match an existing inventory item, show search results
+	 * @param {string} item - the text typed by the user which will be used to search the inventory via getInventory
+	 */
 	function updateInputs(item: string) {
 		setSearchQuery(item)
 		if (item){
@@ -110,6 +134,7 @@ function Inventory() {
 						setCheckWeekly(response[0].checkWeekly)
 						setAmountNeededWeekly(response[0].amountNeededWeekly)
 					}
+					// otherwise, show search suggestions
 					else{
 						setSearchSuggestionsEnabled(true)
 					}
@@ -127,6 +152,7 @@ function Inventory() {
 			setAmountNeededWeekly("")
 		}
 	}
+
 	// if the URL query parameters change, update the inputs accordingly
 	// this does run when the component loads, because the useEffect() detects the searchParams changing when they initialize
 	useEffect(() => {
@@ -140,6 +166,8 @@ function Inventory() {
 			setEditing(false)
 		}
 	}, [searchParams])
+
+	// if the page URL changes while still on the page, like when switching from /add to /search, clear the inputs
 	useEffect(()=> {
 		updateInputs("")
 		setHaveAmount("")
@@ -175,7 +203,6 @@ function Inventory() {
 						})}
 					</datalist>}
 				</div>
-
 				{/* text input for the have property */}
 				<div className="mt-6 mb-2">
 					<div className="float-left">Have:</div>
@@ -195,35 +222,40 @@ function Inventory() {
 					}}/>
 					<div className="w-12 pl-1 float-right">{unit}</div>
 				</div>
-				{/* input to set the units of an item */}
-				{addingNewItem && <><div className="mt-2 mb-2">
-					<div className="float-left">Unit (Plural):</div>
-					<input id="unitInput" className={"w-36 pl-1 ml-1 bg-oatnet-foreground rounded-lg select-none"+(!inputValidityMap.unitInput && " bg-oatnet-invalid text-oatnet-text-dark placeholder-oatnet-placeholder-dark")} placeholder="pairs, oz, etc." value={unit!==undefined ? unit:""} autoComplete="off" onChange={e => {
-						setInputValidityMap({...inputValidityMap, "unitInput":true})
-						setUnit(e.target.value)
-					}}/>
-				</div>
-				{/* input to set how many of an item we need to restock weekly */}
-				<div className="mt-2 mb-2">
-					<div className="float-left">Needed Weekly:</div>
-					<input id="amountNeededWeeklyInput" className="w-16 pl-1 ml-1 bg-oatnet-foreground rounded-lg select-none" type="number" placeholder="16" value={amountNeededWeekly!==undefined ? amountNeededWeekly:""} autoComplete="off" onChange={e => {
-						setAmountNeededWeekly(isNaN(parseFloat(e.target.value)) ? "" : parseFloat(e.target.value))
-					}}/>
-				</div>
-				{/* checkbox to mark an item as one to check the status of weekly */}
-				<div className="flex items-center mt-1 mx-1 mb-4">
-					<div className="">
-						Check Weekly?:
+				{/* this section is only shown when adding items, replacing the settings panel so all options are shown*/}
+				{addingNewItem && <>
+					{/* input to set the units of an item */}
+					<div className="mt-2 mb-2">
+						<div className="float-left">Unit (Plural):</div>
+						<input id="unitInput" className={"w-36 pl-1 ml-1 bg-oatnet-foreground rounded-lg select-none"+(!inputValidityMap.unitInput && " bg-oatnet-invalid text-oatnet-text-dark placeholder-oatnet-placeholder-dark")} placeholder="pairs, oz, etc." value={unit!==undefined ? unit:""} autoComplete="off" onChange={e => {
+							setInputValidityMap({...inputValidityMap, "unitInput":true})
+							setUnit(e.target.value)
+						}}/>
 					</div>
-					<div id="checkWeeklyInput" className="w-5 h-5 ml-2 bg-oatnet-foreground rounded-md flex items-center justify-center" onClick={() => {
-						setCheckWeekly(!checkWeekly)
-					}}>
-						{checkWeekly ? <img className="oatnet-text" src="/assets/check.svg" alt="Checkmark"/> : ""}
+					{/* input to set how many of an item we need to restock weekly */}
+					<div className="mt-2 mb-2">
+						<div className="float-left">Needed Weekly:</div>
+						<input id="amountNeededWeeklyInput" className="w-16 pl-1 ml-1 bg-oatnet-foreground rounded-lg select-none" type="number" placeholder="16" value={amountNeededWeekly!==undefined ? amountNeededWeekly:""} autoComplete="off" onChange={e => {
+							setAmountNeededWeekly(isNaN(parseFloat(e.target.value)) ? "" : parseFloat(e.target.value))
+						}}/>
 					</div>
-				</div></>}
+					{/* checkbox to mark an item as one to check the status of weekly */}
+					<div className="flex items-center mt-1 mx-1 mb-4">
+						<div className="">
+							Check Weekly?:
+						</div>
+						<div id="checkWeeklyInput" className="w-5 h-5 ml-2 bg-oatnet-foreground rounded-md flex items-center justify-center" onClick={() => {
+							setCheckWeekly(!checkWeekly)
+						}}>
+							{checkWeekly ? <img className="oatnet-text" src="/assets/check.svg" alt="Checkmark"/> : ""}
+						</div>
+					</div>
+				</>}
+				{/* notify the user that they need to complete all required fields*/}
 				{formInvalid && <div className="p-1 mt-2 mb-2 rounded-md border-4 border-oatnet-invalid">Please fill in the required fields!</div>}
 				{/* button to submit data to the backend */}
 				<button id="submitButton" className="mt-4 ml-2 w-40 h-8 bg-oatnet-foreground rounded-lg" onClick={() => {
+					// if required inputs are filled, submit item
 					if(searchQuery != "" && haveAmount !== "" && needAmount !== "" && unit != ""){
 						postInventory({
 							name: searchQuery,
@@ -245,6 +277,7 @@ function Inventory() {
 							setEditing(false)
 						})
 					}
+					// if a required input is invalid, update the validity map entry for that input so it's updated accordingly
 					else {
 						let inputValidityMapLocal = {...inputValidityMap}
 						if (searchQuery === "")
@@ -262,7 +295,6 @@ function Inventory() {
 				}}>
 					{editing ? "Update" : "Submit"}
 				</button>
-
 				{/* collapsible panel for settings */}
 				{!addingNewItem && <div className={settingsPanelOpen ? "w-72 mt-3 border-solid border-4 border-oatnet-text rounded-lg" : "w-72 mt-4 ml-2"}>
 					<button className="w-9 mt-1 mx-1 py-1 rounded-lg bg-oatnet-foreground inline-block" onClick={() => {

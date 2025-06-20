@@ -23,4 +23,6 @@ ui/*.njsproj
 ui/*.sln
 ui/*.sw?
 # Built server executable
-server/oatnetserver
+server/server
+# Go workspace file
+go.work
