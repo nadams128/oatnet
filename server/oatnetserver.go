@@ -19,11 +19,13 @@ package main
 import(
 	"github.com/nadams128/oatnet/server/inventory"
 	"github.com/nadams128/oatnet/server/auth"
+	"github.com/nadams128/oatnet/server/containersets"
+	"github.com/nadams128/oatnet/server/logger"
 	"net/http"
 	"fmt"
-	"bufio"
-	"strings"
-	"os"
+	//"bufio"
+	//"strings"
+	//"os"
 	"context"
 	"github.com/jackc/pgx/v5"
 	"golang.org/x/crypto/bcrypt"
@@ -31,22 +33,39 @@ import(
 )
 
 func main() {
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Println("Oatnet Start Options")
+	//reader := bufio.NewReader(os.Stdin)
+	logger.Clear()
+	fmt.Println("+-----------------------------------------------------------+")
+	fmt.Println("|                                                           |")
+	fmt.Println("|    ██████╗  █████╗ ████████╗███╗   ██╗███████╗████████╗   |")
+	fmt.Println("|   ██╔═══██╗██╔══██╗╚══██╔══╝████╗  ██║██╔════╝╚══██╔══╝   |")
+	fmt.Println("|   ██║   ██║███████║   ██║   ██╔██╗ ██║█████╗     ██║      |")
+	fmt.Println("|   ██║   ██║██╔══██║   ██║   ██║╚██╗██║██╔══╝     ██║      |")
+	fmt.Println("|   ╚██████╔╝██║  ██║   ██║   ██║ ╚████║███████╗   ██║      |")
+	fmt.Println("|    ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═══╝╚══════╝   ╚═╝      |")
+	fmt.Println("|                                                           |")
+	fmt.Println("+-----------------------------------------------------------+")
+	fmt.Println("")
+	fmt.Println("+-- Oatnet Start Options --+")
 	fmt.Println("start : Start the server for this oatnet instance")
-	fmt.Println("reformat : Delete and recreate the database of this oatnet instance")
-	fmt.Println("+++++++++++++++++++++")
+	fmt.Println("reformat-oatnet-instance : Delete and recreate the database of this oatnet instance")
+	fmt.Println("")
+	fmt.Println("+-----------------------------------------------------------+")
 	fmt.Println("")
 	fmt.Print("Type command: ")
-	userInput, _ := reader.ReadString('\n')
-	userInput = strings.Replace(userInput, "\n", "", -1)
-	if userInput == "start" {
-		fmt.Println("Starting Oatnet Server")
+	//userInput, _ := reader.ReadString('\n')
+	//userInput = strings.Replace(userInput, "\n", "", -1)
+	if true {
+		logger.Info("Starting Oatnet Server")
 		http.HandleFunc("/inv", inventory.RequestHandler)
 		http.HandleFunc("/auth", auth.RequestHandler)
+		http.HandleFunc("/containersets", containersets.RequestHandler)
 		http.ListenAndServe(":8080", nil)
-	} else if userInput == "reformat" {
-		conn, _ := pgx.Connect(context.Background(), "postgres://oatnet:password@127.0.0.1/oatnet")
+	} else if false {
+		conn, connectionErr := pgx.Connect(context.Background(), "postgres://oatnet:password@127.0.0.1/oatnet")
+		if connectionErr != nil {
+			logger.Err(connectionErr)
+		}
 		defer conn.Close(context.Background())
 		_, execErr := conn.Exec(context.Background(), "DROP TABLE IF EXISTS inventory;")
 		_, execErr = conn.Exec(context.Background(), "DROP TABLE IF EXISTS users;")
@@ -57,9 +76,7 @@ func main() {
 			need REAL NOT NULL CHECK(need >= 0),
 			unit TEXT NOT NULL,
 			checkweekly BOOLEAN NOT NULL,
-			amountneededweekly REAL CHECK (amountneededweekly >= 0),
-			stocked BOOLEAN NOT NULL,
-			amountmissing REAL CHECK (amountmissing >= 0)
+			amountneededweekly REAL CHECK (amountneededweekly >= 0)
 		);`)
 		_, execErr = conn.Exec(context.Background(), `CREATE TABLE users(
 			username TEXT UNIQUE NOT NULL PRIMARY KEY,
@@ -71,12 +88,16 @@ func main() {
 			sessionid TEXT UNIQUE NOT NULL PRIMARY KEY,
 			username TEXT NOT NULL
 		);`)
+		_, execErr = conn.Exec(context.Background(), `CREATE TABLE containersets(
+			name TEXT UNIQUE NOT NULL PRIMARY KEY,
+			containers JSONB NOT NULL
+		)`)
 		adminPassword := rand.Text()
 		// use the CSPRNG generated password to generate a hash for storage
 		hash, _ := bcrypt.GenerateFromPassword([]byte(adminPassword), bcrypt.DefaultCost)
 		_, execErr = conn.Exec(context.Background(), "INSERT INTO users VALUES ('administrator', $1, true, true);", string(hash))
 		if execErr != nil {
-			fmt.Println("Error when reformatting oatnet: ", execErr)
+			logger.Err(execErr)
 		}
 		fmt.Println("Oatnet Admin Password (COPY THIS! You will not see its like again otherwise):")
 		fmt.Println(adminPassword)

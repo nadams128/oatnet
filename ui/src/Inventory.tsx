@@ -16,7 +16,6 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-"use client";
 import { useEffect, useState } from 'react';
 import {useSearchParams, useNavigate, useLocation} from "react-router-dom";
 import { serverDomain } from './App';

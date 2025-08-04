@@ -19,17 +19,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
-import Inventory from './Inventory';
-import Report from './Report';
+import Inventory from './Inventory'
+import Report from './Report'
 import Login from './Login'
 import Admin from './Admin'
+import Containers from './Containers'
 import {
 	createBrowserRouter,
 	createRoutesFromElements,
 	RouterProvider,
 	Route,
 	Outlet,
-} from "react-router-dom";
+} from "react-router-dom"
 import './index.css'
 
 const router = createBrowserRouter(createRoutesFromElements(
@@ -71,8 +72,12 @@ const router = createBrowserRouter(createRoutesFromElements(
 			path = "/add"
 			element = {<Inventory/>}
 		/>
+		<Route
+			path = "/containers"
+			element = {<Containers/>}
+		/>
 	</Route>
-));
+))
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
 	<React.StrictMode>

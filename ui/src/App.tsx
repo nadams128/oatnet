@@ -45,6 +45,8 @@ function getTitle(registered:boolean, loggedIn:boolean){
 			return "OATNET/SEARCH"
 		case "/add":
 			return "OATNET/ADD"
+		case "/containers":
+			return "OATNET/CONTAINERS"
 		default:
 			return "OATNET"
 	}
@@ -82,6 +84,9 @@ function App({children}:any) {
 							<Link to="/report">/REPORT</Link>
 						</div>
 					</>}
+					<div className="flex text-lg" onClick={() => {setShowMenu(false)}}>
+						<Link to="/containers">/CONTAINERS</Link>
+					</div>
 					<div className="flex text-lg" onClick={() => {setShowMenu(false)}}>
 						<Link to="/login">
 							{(localStorage.getItem("sessionID") ? "/LOGOUT" : (localStorage.getItem("username") ? "/LOGIN" : "/REGISTER"))}

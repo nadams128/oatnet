@@ -18,20 +18,20 @@ package auth
 
 import(
 	"context"
-	"fmt"
 	"net/http"
 	"encoding/json"
 	"github.com/jackc/pgx/v5"
 	"io/ioutil"
 	"golang.org/x/crypto/bcrypt"
 	"crypto/rand"
+	"github.com/nadams128/oatnet/server/logger"
 )
 
 // Takes a writer and a request, then routes to the proper function based on the HTTP method.
 func RequestHandler(w http.ResponseWriter, r *http.Request) {
 	conn, connectionError := pgx.Connect(context.Background(), "postgres://oatnet:password@127.0.0.1/oatnet")
 	if connectionError != nil {
-		fmt.Println("connectionError: ", connectionError)
+		logger.Err(connectionError)
 	}
 	defer conn.Close(context.Background())
 	switch r.Method {
@@ -53,14 +53,14 @@ func CheckPermissions(sessionID string, conn *pgx.Conn) (bool, bool) {
 	var username string
 	scanErr := row.Scan(&username)
 	if scanErr != nil {
-		fmt.Println("Error scanning in username in CheckPermissions: ", scanErr)
+		logger.Err(scanErr)
 	}
 	row = conn.QueryRow(context.Background(), "SELECT read, write FROM users WHERE UPPER(username) LIKE UPPER($1);", username)
 	var read bool
 	var write bool
 	scanErr = row.Scan(&read, &write)
 	if scanErr != nil {
-		fmt.Println("Error scanning in permissions in CheckPermissions: ", scanErr)
+		logger.Err(scanErr)
 	}
 	return read, write
 }
@@ -79,12 +79,12 @@ func getUser(w http.ResponseWriter, r *http.Request, conn *pgx.Conn) {
 		var requestingUser string
 		scanRequestingUserErr := row.Scan(&requestingUser)
 		if scanRequestingUserErr != nil {
-			fmt.Println("Error scanning the requested user: ", scanRequestingUserErr)
+			logger.Err(scanRequestingUserErr)
 		}
 		if requestingUser == "administrator" {
 			rows, selectAllUsersErr := conn.Query(context.Background(), "SELECT username, read, write FROM users;")
 			if selectAllUsersErr != nil {
-				fmt.Println("Error when selecting all users: ", selectAllUsersErr)
+				logger.Err(selectAllUsersErr)
 			}
 			type getUser struct {
 				Username string `json:"username"`
@@ -100,11 +100,11 @@ func getUser(w http.ResponseWriter, r *http.Request, conn *pgx.Conn) {
 				return getUser{username, read, write}, err
 			})
 			if rowsCollectErr != nil {
-				fmt.Println("Error collecting rows: ", rowsCollectErr)
+				logger.Err(rowsCollectErr)
 			}
 			jsonResponse, marshalErr := json.Marshal(allUsers)
 			if marshalErr != nil {
-				fmt.Println("marshal error: ", marshalErr)
+				logger.Err(marshalErr)
 			}
 			w.Write(jsonResponse)
 		}
@@ -123,7 +123,7 @@ func postUser(w http.ResponseWriter, r *http.Request, conn *pgx.Conn) {
 	// read the body in as bytes so it can be converted into a usable object
 	receivedBytes, readErr := ioutil.ReadAll(r.Body)
 	if readErr != nil {
-		fmt.Println("read error: ", readErr)
+		logger.Err(readErr)
 	}
 	if action == "login" {
 		type loginUser struct {
@@ -133,12 +133,12 @@ func postUser(w http.ResponseWriter, r *http.Request, conn *pgx.Conn) {
 		var user loginUser
 		unmarshalErr := json.Unmarshal(receivedBytes, &user)
 		if unmarshalErr != nil {
-			fmt.Println("unmarshal error: ", unmarshalErr)
+			logger.Err(unmarshalErr)
 		}
 		row := conn.QueryRow(context.Background(), "SELECT username FROM users WHERE UPPER(username) LIKE UPPER($1);", user.Username) 
 		scanErr := row.Scan(&username)
 		if scanErr != nil {
-			fmt.Println("Error scanning user when checking if they exist: ", scanErr)
+			logger.Err(scanErr)
 		}
 		// if the user already exists
 		if username != "" {
@@ -146,30 +146,30 @@ func postUser(w http.ResponseWriter, r *http.Request, conn *pgx.Conn) {
 			var row = conn.QueryRow(context.Background(), "SELECT password FROM users WHERE UPPER(username) LIKE UPPER($1);", username)
 			scanErr = row.Scan(&storedPassword)
 			if scanErr != nil {
-				fmt.Println("Error scanning in stored password: ", scanErr)
+				logger.Err(scanErr)
 			}
 			wrongPasswordErr := bcrypt.CompareHashAndPassword([]byte(storedPassword), []byte(user.Password))
 			if wrongPasswordErr == nil {
 				sessionID = rand.Text()
 				_, insertErr := conn.Exec(context.Background(), "INSERT INTO sessions(sessionid, username) VALUES ($1, $2);", sessionID, username)
 				if insertErr != nil {
-					fmt.Println("Error adding new session for existing user: ", insertErr)
+					logger.Err(insertErr)
 				}
 			} else if wrongPasswordErr != nil {
-				fmt.Println("Wrong password error: ", wrongPasswordErr)
+				logger.Err(wrongPasswordErr)
 			}
 		// if the user doesn't already exist
 		} else if username == "" {
 			hash, hashErr := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 			if hashErr != nil {
-				fmt.Println("Error when hashing password: ", hashErr)
+				logger.Err(hashErr)
 			}
 			sessionID = rand.Text()
 			var insertErr error
 			_, insertErr = conn.Exec(context.Background(), "INSERT INTO users(username, password, read, write) VALUES ($1, $2, $3, $4);", user.Username, string(hash), false, false)
 			_, insertErr = conn.Exec(context.Background(), "INSERT INTO sessions(sessionid, username) VALUES($1, $2);", sessionID, user.Username)
 			if insertErr != nil {
-				fmt.Println("Error when inserting new user data into db: ", insertErr)
+				logger.Err(insertErr)
 			}
 		}
 	} else if action == "logout" {
@@ -181,7 +181,7 @@ func postUser(w http.ResponseWriter, r *http.Request, conn *pgx.Conn) {
 		if sessionID != "" {
 			_, deleteErr := conn.Exec(context.Background(), "DELETE FROM sessions WHERE sessionid=$1;", sessionID)
 			if deleteErr != nil {
-				fmt.Println("Error deleting user from db: ", deleteErr)
+				logger.Err(deleteErr)
 			}
 		}
 	} else if action == "changepermissions" {
@@ -198,23 +198,23 @@ func postUser(w http.ResponseWriter, r *http.Request, conn *pgx.Conn) {
 		var user permsUser
 		unmarshalErr := json.Unmarshal(receivedBytes, &user)
 		if unmarshalErr != nil {
-			fmt.Println("unmarshal error: ", unmarshalErr)
+			logger.Err(unmarshalErr)
 		}
 		row := conn.QueryRow(context.Background(), "SELECT username from sessions WHERE sessionID=$1;", sessionID)
 		scanErr := row.Scan(&username)
 		if scanErr != nil {
-			fmt.Println("Error scanning user when checking if they're an administrator: ", scanErr)
+			logger.Err(scanErr)
 		}
 		if username == "administrator" {
 			_, updateErr := conn.Exec(context.Background(), "UPDATE users SET read=$1, write=$2 WHERE username=$3;", user.Read, user.Write, user.Username)
 			if updateErr != nil {
-				fmt.Println("Error updating user permissions: ", updateErr)
+				logger.Err(updateErr)
 			}
 		}
 	}
 	jsonResponse, marshalErr := json.Marshal(sessionID)
 	if marshalErr != nil {
-		fmt.Println("Error marshaling response into JSON: ", marshalErr)
+		logger.Err(marshalErr)
 	}
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Write(jsonResponse)
@@ -227,11 +227,11 @@ func deleteUser(w http.ResponseWriter, r *http.Request, conn *pgx.Conn) {
 	// read the body in as bytes so it can be converted into a string
 	receivedBytes, readErr := ioutil.ReadAll(r.Body)
 	if readErr != nil {
-		fmt.Println("read error: ", readErr)
+		logger.Err(readErr)
 	}
 	unmarshalErr := json.Unmarshal(receivedBytes, &user)
 	if unmarshalErr != nil {
-		fmt.Println("unmarshal error: ", unmarshalErr)
+		logger.Err(unmarshalErr)
 	}
 	sessionIDHeader := r.Header["Sessionid"]
 	var sessionID string
@@ -243,20 +243,20 @@ func deleteUser(w http.ResponseWriter, r *http.Request, conn *pgx.Conn) {
 		var username string
 		scanErr := row.Scan(&username)
 		if scanErr != nil {
-			fmt.Println("Error scanning user when checking if they're an administrator: ", scanErr)
+			logger.Err(scanErr)
 		}
 		if username == "administrator" {
 			var deleteErr error
 			_, deleteErr = conn.Exec(context.Background(), "DELETE FROM users WHERE username=$1;", user)
 			_, deleteErr = conn.Exec(context.Background(), "DELETE FROM sessions WHERE username=$1;", user)
 			if deleteErr != nil {
-				fmt.Println("Error deleting user: ", deleteErr)
+				logger.Err(deleteErr)
 			}
 		}
 	}
 	jsonResponse, marshalErr := json.Marshal(response)
 	if marshalErr != nil {
-		fmt.Println("Error marshaling response into JSON: ", marshalErr)
+		logger.Err(marshalErr)
 	}
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Write(jsonResponse)

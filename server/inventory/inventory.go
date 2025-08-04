@@ -18,7 +18,6 @@ package inventory
 
 import(
 	"context"
-	"fmt"
 	"net/http"
 	"encoding/json"
 	"github.com/jackc/pgx/v5"
@@ -26,6 +25,7 @@ import(
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 	"github.com/nadams128/oatnet/server/auth"
+	"github.com/nadams128/oatnet/server/logger"
 )
 
 // Represents an item in the inventory.
@@ -40,7 +40,10 @@ type inventoryItem struct {
 
 // Takes a writer and a request, then routes to the proper function based on the HTTP method.
 func RequestHandler(w http.ResponseWriter, r *http.Request) {
-	conn, _ := pgx.Connect(context.Background(), "postgres://oatnet:password@127.0.0.1/oatnet")
+	conn, connectionErr := pgx.Connect(context.Background(), "postgres://oatnet:password@127.0.0.1/oatnet")
+	if connectionErr != nil {
+		logger.Err(connectionErr)
+	}
 	defer conn.Close(context.Background())
 	switch r.Method {
 		case "GET":
@@ -61,7 +64,7 @@ func getInventory(w http.ResponseWriter, r *http.Request, conn *pgx.Conn) {
 	// run ParseForm to populate r.Form with the query parameters of the request
 	formParseError := r.ParseForm()
 	if formParseError != nil {
-		fmt.Println(formParseError)
+		logger.Err(formParseError)
 	}
 	var requestedRows pgx.Rows
 	sessionIDHeader := r.Header["Sessionid"]
@@ -90,7 +93,7 @@ func getInventory(w http.ResponseWriter, r *http.Request, conn *pgx.Conn) {
 			requestedRows, selectErr = conn.Query(context.Background(), "SELECT * FROM inventory ORDER BY name;")
 		}
 		if selectErr != nil {
-			fmt.Println(selectErr)
+			logger.Err(selectErr)
 		}
 		var name string
 		var have float32
@@ -99,13 +102,17 @@ func getInventory(w http.ResponseWriter, r *http.Request, conn *pgx.Conn) {
 		var checkWeekly bool
 		var amountNeededWeekly float32
 		// iterate through the rows requested from the database and format each entry into an inventoryItem object
-		responseList, _ := pgx.CollectRows(requestedRows, func(row pgx.CollectableRow) (inventoryItem, error) {
-			err := row.Scan(&name, &have, &need, &unit, &checkWeekly, &amountNeededWeekly, nil, nil)
+		responseList, collectErr := pgx.CollectRows(requestedRows, func(row pgx.CollectableRow) (inventoryItem, error) {
+			err := row.Scan(&name, &have, &need, &unit, &checkWeekly, &amountNeededWeekly)
 			return inventoryItem{name, have, need, unit, checkWeekly, amountNeededWeekly}, err
 		})
+		if collectErr != nil {
+			logger.Err(collectErr)
+		}
+		requestedRows.Close()
 		var jsonResponseList, marshalErr = json.Marshal(responseList)
 		if marshalErr != nil {
-			fmt.Println(marshalErr)
+			logger.Err(marshalErr)
 		}
 		w.Write(jsonResponseList)
 	}
@@ -124,33 +131,33 @@ func postInventory(w http.ResponseWriter, r *http.Request, conn *pgx.Conn) {
 		// read the body in as bytes so it can be converted into an inventoryItem
 		receivedBytes, readErr := ioutil.ReadAll(r.Body)
 		if readErr != nil {
-			fmt.Println(readErr)
+			logger.Err(readErr)
 		}
 		unmarshalErr := json.Unmarshal(receivedBytes, &item)
 		if unmarshalErr != nil {
-			fmt.Println(unmarshalErr)
+			logger.Err(unmarshalErr)
 		}
 		// check if the item exists to determine if it should be added or used to update an item
 		requestedItem, _ := conn.Query(context.Background(), "SELECT * FROM inventory WHERE name=$1;", cases.Title(language.AmericanEnglish).String(item.Name))
 		var requestedItemExists bool = requestedItem.Next()
 		requestedItem.Close()
 		if requestedItemExists {
-			_,updateErr := conn.Exec(context.Background(), "UPDATE inventory SET have=$1, need=$2, unit=$3, checkweekly=$4, amountneededweekly=$5 WHERE name=$6;", item.Have, item.Need, item.Unit, item.CheckWeekly, item.AmountNeededWeekly, cases.Title(language.AmericanEnglish).String(item.Name))
+			_, updateErr := conn.Exec(context.Background(), "UPDATE inventory SET have=$1, need=$2, unit=$3, checkweekly=$4, amountneededweekly=$5 WHERE name=$6;", item.Have, item.Need, item.Unit, item.CheckWeekly, item.AmountNeededWeekly, cases.Title(language.AmericanEnglish).String(item.Name))
 			responseMessage = "Item updated! :D"
 			if updateErr != nil {
-				fmt.Println(updateErr)
+				logger.Err(updateErr)
 			}
 		} else {
-			_,insertErr := conn.Exec(context.Background(), "INSERT INTO inventory VALUES($1,$2,$3,$4,$5,$6,false,0);", cases.Title(language.AmericanEnglish).String(item.Name), item.Have, item.Need, item.Unit, item.CheckWeekly, item.AmountNeededWeekly)
+			_, insertErr := conn.Exec(context.Background(), "INSERT INTO inventory VALUES($1,$2,$3,$4,$5,$6);", cases.Title(language.AmericanEnglish).String(item.Name), item.Have, item.Need, item.Unit, item.CheckWeekly, item.AmountNeededWeekly)
 			responseMessage = "Item added! :D"
 			if insertErr != nil {
-				fmt.Println(insertErr)
+				logger.Err(insertErr)
 			}
 		}
 	}
 	var jsonResponseMessage, marshalErr = json.Marshal(responseMessage)
 	if marshalErr != nil {
-		fmt.Println(marshalErr)
+		logger.Err(marshalErr)
 	}
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Write(jsonResponseMessage)
@@ -161,7 +168,7 @@ func deleteInventory(w http.ResponseWriter, r *http.Request, conn *pgx.Conn) {
 	// run ParseForm to populate r.Form with the query parameters of the request
 	formParseError := r.ParseForm()
 	if formParseError != nil {
-		fmt.Println("formParseError ", formParseError)
+		logger.Err(formParseError)
 	}
 	var responseMessage string = "Delete failed! D:"
 	sessionIDHeader := r.Header["Sessionid"]
@@ -175,7 +182,7 @@ func deleteInventory(w http.ResponseWriter, r *http.Request, conn *pgx.Conn) {
 		if itemParamExists {
 			_, deleteErr := conn.Exec(context.Background(), "DELETE FROM inventory WHERE name=$1;", cases.Title(language.AmericanEnglish).String(item[0])) 
 			if deleteErr != nil {
-				fmt.Println("deleteErr ", deleteErr)
+				logger.Err(deleteErr)
 			} else {
 				responseMessage = "Item deleted! :D"
 			}
@@ -183,7 +190,7 @@ func deleteInventory(w http.ResponseWriter, r *http.Request, conn *pgx.Conn) {
 	}
 	var jsonResponseMessage, marshalErr = json.Marshal(responseMessage)
 	if marshalErr != nil {
-		fmt.Println("marshalErr ", marshalErr)
+		logger.Err(marshalErr)
 	}
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Write(jsonResponseMessage)

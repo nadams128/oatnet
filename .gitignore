@@ -26,3 +26,5 @@ ui/*.sw?
 server/server
 # Go workspace file
 go.work
+# Server log files
+server/logs

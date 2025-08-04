@@ -15,16 +15,34 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+@import "tailwindcss";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@theme {
+	--color-oatnet-background: #1d492e;
+	--color-oatnet-background-modal: #112c1c;
+	--color-oatnet-foreground: #2a6442;
+	--color-oatnet-text-light: #FFFFFF;
+	--color-oatnet-placeholder-light: #757575;
+	--color-oatnet-text-dark: #000000;
+	--color-oatnet-placeholder-dark: #666666;
+	--color-oatnet-invalid: #ff6161;
+	--font-youngserif: 'Young Serif', 'sans-serif';
+	--font-intervariabletext: 'Inter Variable Text', 'sans-serif';
+}
 
 @font-face{
 	font-family: "Young Serif";
 	src: url("/assets/YoungSerif.ttf");
-};
+}
+
 @font-face{
 	font-family: "Inter Variable Text";
 	src: url("/assets/InterVariable.ttf");
-};
+}
+
+@layer base {
+	input[type=number].appearance-none::-webkit-inner-spin-button,
+	input[type=number].appearance-none::-webkit-outer-spin-button {
+		-webkit-appearance: none;
+	}
+}
