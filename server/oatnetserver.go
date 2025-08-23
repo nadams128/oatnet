@@ -53,15 +53,15 @@ func main() {
 	fmt.Println("+-----------------------------------------------------------+")
 	fmt.Println("")
 	fmt.Print("Type command: ")
-	//userInput, _ := reader.ReadString('\n')
-	//userInput = strings.Replace(userInput, "\n", "", -1)
-	if true {
+	userInput, _ := reader.ReadString('\n')
+	userInput = strings.Replace(userInput, "\n", "", -1)
+	if userInput == "start" {
 		logger.Info("Starting Oatnet Server")
 		http.HandleFunc("/inv", inventory.RequestHandler)
 		http.HandleFunc("/auth", auth.RequestHandler)
 		http.HandleFunc("/containersets", containersets.RequestHandler)
 		http.ListenAndServe(":8080", nil)
-	} else if false {
+	} else if userInput == "reformat-oatnet-instance" {
 		conn, connectionErr := pgx.Connect(context.Background(), "postgres://oatnet:password@127.0.0.1/oatnet")
 		if connectionErr != nil {
 			logger.Err(connectionErr)
@@ -70,13 +70,15 @@ func main() {
 		_, execErr := conn.Exec(context.Background(), "DROP TABLE IF EXISTS inventory;")
 		_, execErr = conn.Exec(context.Background(), "DROP TABLE IF EXISTS users;")
 		_, execErr = conn.Exec(context.Background(), "DROP TABLE IF EXISTS sessions;")
+		_, execErr = conn.Exec(context.Background(), "DROP TABLE IF EXISTS containersets;")
 		_, execErr = conn.Exec(context.Background(), `CREATE TABLE inventory(
 			name TEXT UNIQUE NOT NULL PRIMARY KEY,
 			have REAL NOT NULL CHECK(have >= 0),
 			need REAL NOT NULL CHECK(need >= 0),
 			unit TEXT NOT NULL,
 			checkweekly BOOLEAN NOT NULL,
-			amountneededweekly REAL CHECK (amountneededweekly >= 0)
+			amountneededweekly REAL CHECK (amountneededweekly >= 0),
+			assignedset TEXT
 		);`)
 		_, execErr = conn.Exec(context.Background(), `CREATE TABLE users(
 			username TEXT UNIQUE NOT NULL PRIMARY KEY,

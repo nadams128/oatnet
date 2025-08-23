@@ -45,8 +45,8 @@ function getTitle(registered:boolean, loggedIn:boolean){
 			return "OATNET/SEARCH"
 		case "/add":
 			return "OATNET/ADD"
-		case "/containers":
-			return "OATNET/CONTAINERS"
+		case "/containersets":
+			return "OATNET/CONTAINER SETS"
 		default:
 			return "OATNET"
 	}
@@ -85,7 +85,7 @@ function App({children}:any) {
 						</div>
 					</>}
 					<div className="flex text-lg" onClick={() => {setShowMenu(false)}}>
-						<Link to="/containers">/CONTAINERS</Link>
+						<Link to="/containersets">/CONTAINER SETS</Link>
 					</div>
 					<div className="flex text-lg" onClick={() => {setShowMenu(false)}}>
 						<Link to="/login">

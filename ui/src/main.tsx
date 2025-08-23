@@ -23,7 +23,7 @@ import Inventory from './Inventory'
 import Report from './Report'
 import Login from './Login'
 import Admin from './Admin'
-import Containers from './Containers'
+import ContainerSets from './ContainerSets'
 import {
 	createBrowserRouter,
 	createRoutesFromElements,
@@ -73,8 +73,8 @@ const router = createBrowserRouter(createRoutesFromElements(
 			element = {<Inventory/>}
 		/>
 		<Route
-			path = "/containers"
-			element = {<Containers/>}
+			path = "/containersets"
+			element = {<ContainerSets/>}
 		/>
 	</Route>
 ))

@@ -5,12 +5,12 @@ import Button from './components/Button.tsx';
 import Input from './components/Input.tsx';
 import InvalidInputIndicator from './components/InvalidInputIndicator.tsx';
 
-type Container = {
+export type Container = {
 	name : string,
 	percentage : number | undefined
 }
 
-type ContainerSet = {
+export type ContainerSet = {
 	name : string,
 	containers : Container[]
 }
@@ -21,36 +21,36 @@ type ModalInputContainer = {
 	nameIsInvalid : boolean
 }
 
-async function getContainerSet(containerSetName:string) {
-	let response
+export async function getContainerSets(containerSetName:string): ContainerSet | ContainerSet[] {
+	let response: any
 	let sessionID = localStorage.getItem("sessionID")
-	if(sessionID) {
-		if(containerSetName == "" || containerSetName == undefined) {
-			response = await fetch(serverDomain+"/containersets", {
-				method: "GET",
-				headers: {
-					"sessionID": sessionID
-				}
-			})
-		}
-		else {
-			response = await fetch(serverDomain+"/containersets?container="+containerSetName, {
-				method: "GET",
-				headers: {
-					"sessionID": sessionID
-				}
-			})
-		}
-		return response.json()
-	}
-	else {
-		return "No session ID"
+	if (sessionID) {
+//		if (containerSetName) {
+//			response = await fetch(serverDomain+"/containersets?container="+containerSetName, {
+//				method: "GET",
+//				headers: {
+//					"sessionID": sessionID
+//				}
+//			})
+//			let containerSet: ContainerSet = response.json()
+//			return containerSet
+//		}
+//		else {
+		response = await fetch(serverDomain+"/containersets", {
+			method: "GET",
+			headers: {
+				"sessionID": sessionID
+			}
+		})
+		let containerSets: ContainerSet[] = response.json()
+		return containerSets
+//		}
 	}
 }
 
 async function postContainerSet(containerSet: ContainerSet) {
 	let sessionID = localStorage.getItem("sessionID")
-	if(sessionID) {
+	if (sessionID) {
 		await fetch(serverDomain+"/containersets", {
 			method: "POST",
 			headers: {
@@ -79,7 +79,7 @@ async function deleteContainerSet(containerSetName:string) {
 	}
 }
 
-function Containers(){
+function ContainerSets(){
 	const [showModal, setShowModal] = useState<boolean>(false)
 	const [containerSets, setContainerSets] = useState<ContainerSet[]>([])
 	const [newSetName, setNewSetName] = useState<string>("")
@@ -99,7 +99,7 @@ function Containers(){
 		setShowModal(false)
 	}
 	useEffect(() => {
-		getContainerSet().then((response) => {
+		getContainerSets().then((response) => {
 			let serverSets : ContainerSet[] = []
 			for (let set of response) {
 				serverSets.push({name: set.name, containers: set.containers})
@@ -339,4 +339,4 @@ function Containers(){
 	</>)
 }
 
-export default Containers
+export default ContainerSets

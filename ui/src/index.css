@@ -18,8 +18,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @import "tailwindcss";
 
 @theme {
-	--color-oatnet-background: #1d492e;
 	--color-oatnet-background-modal: #112c1c;
+	--color-oatnet-background: #1d492e;
 	--color-oatnet-foreground: #2a6442;
 	--color-oatnet-text-light: #FFFFFF;
 	--color-oatnet-placeholder-light: #757575;

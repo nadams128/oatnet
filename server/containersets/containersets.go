@@ -10,7 +10,6 @@ import(
 	"golang.org/x/text/language"
 	"github.com/nadams128/oatnet/server/auth"
 	"github.com/nadams128/oatnet/server/logger"
-	//"fmt"
 )
 
 type container struct {
@@ -56,9 +55,10 @@ func getContainerSet(w http.ResponseWriter, r *http.Request, conn *pgx.Conn) {
 	}
 	read, _ := auth.CheckPermissions(sessionID, conn)
 	if read {
-		requestedContainer, containerParamExists := r.Form["container"]
+		containerParam, containerParamExists := r.Form["container"]
 		var selectErr error
 		if containerParamExists {
+			var requestedContainer string = containerParam[0]
 			requestedRows, selectErr = conn.Query(context.Background(), "SELECT * FROM containersets WHERE name=$1", requestedContainer)
 		} else {
 			requestedRows, selectErr = conn.Query(context.Background(), "SELECT * FROM containersets ORDER BY name")

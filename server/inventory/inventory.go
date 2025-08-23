@@ -26,6 +26,7 @@ import(
 	"golang.org/x/text/language"
 	"github.com/nadams128/oatnet/server/auth"
 	"github.com/nadams128/oatnet/server/logger"
+//	"fmt"
 )
 
 // Represents an item in the inventory.
@@ -36,6 +37,7 @@ type inventoryItem struct {
 	Unit string `json:"unit"`
 	CheckWeekly bool `json:"checkWeekly"`
 	AmountNeededWeekly float32 `json:"amountNeededWeekly"`
+	AssignedSet string `json:"assignedSet"`
 }
 
 // Takes a writer and a request, then routes to the proper function based on the HTTP method.
@@ -101,10 +103,11 @@ func getInventory(w http.ResponseWriter, r *http.Request, conn *pgx.Conn) {
 		var unit string
 		var checkWeekly bool
 		var amountNeededWeekly float32
+		var assignedSet string
 		// iterate through the rows requested from the database and format each entry into an inventoryItem object
 		responseList, collectErr := pgx.CollectRows(requestedRows, func(row pgx.CollectableRow) (inventoryItem, error) {
-			err := row.Scan(&name, &have, &need, &unit, &checkWeekly, &amountNeededWeekly)
-			return inventoryItem{name, have, need, unit, checkWeekly, amountNeededWeekly}, err
+			err := row.Scan(&name, &have, &need, &unit, &checkWeekly, &amountNeededWeekly, &assignedSet)
+			return inventoryItem{name, have, need, unit, checkWeekly, amountNeededWeekly, assignedSet}, err
 		})
 		if collectErr != nil {
 			logger.Err(collectErr)
@@ -142,13 +145,13 @@ func postInventory(w http.ResponseWriter, r *http.Request, conn *pgx.Conn) {
 		var requestedItemExists bool = requestedItem.Next()
 		requestedItem.Close()
 		if requestedItemExists {
-			_, updateErr := conn.Exec(context.Background(), "UPDATE inventory SET have=$1, need=$2, unit=$3, checkweekly=$4, amountneededweekly=$5 WHERE name=$6;", item.Have, item.Need, item.Unit, item.CheckWeekly, item.AmountNeededWeekly, cases.Title(language.AmericanEnglish).String(item.Name))
+			_, updateErr := conn.Exec(context.Background(), "UPDATE inventory SET have=$1, need=$2, unit=$3, checkweekly=$4, amountneededweekly=$5, assignedset=$6 WHERE name=$7;", item.Have, item.Need, item.Unit, item.CheckWeekly, item.AmountNeededWeekly, item.AssignedSet, cases.Title(language.AmericanEnglish).String(item.Name))
 			responseMessage = "Item updated! :D"
 			if updateErr != nil {
 				logger.Err(updateErr)
 			}
 		} else {
-			_, insertErr := conn.Exec(context.Background(), "INSERT INTO inventory VALUES($1,$2,$3,$4,$5,$6);", cases.Title(language.AmericanEnglish).String(item.Name), item.Have, item.Need, item.Unit, item.CheckWeekly, item.AmountNeededWeekly)
+			_, insertErr := conn.Exec(context.Background(), "INSERT INTO inventory VALUES($1,$2,$3,$4,$5,$6,$7);", cases.Title(language.AmericanEnglish).String(item.Name), item.Have, item.Need, item.Unit, item.CheckWeekly, item.AmountNeededWeekly, item.AssignedSet)
 			responseMessage = "Item added! :D"
 			if insertErr != nil {
 				logger.Err(insertErr)
