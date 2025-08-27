@@ -6,10 +6,12 @@ ui/yarn-debug.log*
 ui/yarn-error.log*
 ui/pnpm-debug.log*
 ui/lerna-debug.log*
-# Node and build folders
+# Node and build folders/files
 ui/node_modules
 ui/dist
 ui/dist-ssr
+ui/tsconfig.app.tsbuildinfo
+ui/tsconfig.node.tsbuildinfo
 # .local files
 ui/*.local
 # Editor directories and files

@@ -19,7 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import { serverDomain } from './App';
-import { Container, ContainerSet, getContainerSets } from './ContainerSets';
+import { ContainerSet, getContainerSets } from './ContainerSets';
 
 export type InventoryItem = {
 	name: string,
@@ -37,7 +37,7 @@ export type Inventory = InventoryItem[]
  * Gets details of an inventory item from the backend
  * @param {string} item - the name of the item to be retrieved, if the string is empty, every item is returned
  */
-export async function getInventory(item: string){
+export async function getInventory(item: string = ""){
 	let serverResponse
 	let sessionID = localStorage.getItem("sessionID")
 	if(sessionID){
@@ -105,13 +105,13 @@ async function deleteInventory(item: string){
 function Inventory() {
 	const [serverData, setServerData] = useState<any[]>()
 	const [searchQuery, setSearchQuery] = useState<string>("")
-	const [needAmount, setNeedAmount] = useState<number | string>()
-	const [haveAmount, setHaveAmount] = useState<number | string>()
-	const [unit, setUnit] = useState<string>()
+	const [needAmount, setNeedAmount] = useState<number | undefined>()
+	const [haveAmount, setHaveAmount] = useState<number | undefined>()
+	const [unit, setUnit] = useState<string | undefined>()
 	const [checkWeekly, setCheckWeekly] = useState<boolean>(false)
-	const [amountNeededWeekly, setAmountNeededWeekly] = useState<number | string>()
+	const [amountNeededWeekly, setAmountNeededWeekly] = useState<number | undefined>()
 	const [containerSets, setContainerSets] = useState<ContainerSet[]>()
-	const [selectedContainerSet, setSelectedContainerSet] = useState<ContainerSet | null>()
+	const [selectedContainerSet, setSelectedContainerSet] = useState<ContainerSet | undefined>()
 	const [settingsPanelOpen, setSettingsPanelOpen] = useState<boolean>(false)
 	const [searchSuggestionsEnabled, setSearchSuggestionsEnabled] = useState<boolean>(false)
 	const [editing, setEditing] = useState<boolean>(false)
@@ -164,22 +164,25 @@ function Inventory() {
 		// if the search input is empty, don't give suggestions and keep the inputs empty
 		else{
 			setSearchSuggestionsEnabled(false)
-			setHaveAmount("")
-			setNeedAmount("")
-			setUnit("")
+			setHaveAmount(undefined)
+			setNeedAmount(undefined)
+			setUnit(undefined)
 			setCheckWeekly(false)
-			setAmountNeededWeekly("")
-			setSelectedContainerSet(null)
+			setAmountNeededWeekly(undefined)
+			setSelectedContainerSet(undefined)
 		}
 	}
 
-	function createSplitDirections(set: ContainerSet): string {
+	function createSplitDirections(set: ContainerSet, total: number): string[] {
 		let splits = []
-		let remainder = amountNeededWeekly
+		let remainder = total
 		let amounts = []
-		let largestAmount = 0
 		set.containers.sort((a, b) => {
-			if (a.percentage > b.percentage)
+			if (!a.percentage)
+				return 1
+			if (!b.percentage)
+				return -1
+			else if (a.percentage > b.percentage)
 				return -1
 			else if (a.percentage < b.percentage)
 				return 1
@@ -187,9 +190,11 @@ function Inventory() {
 				return 0
 		})
 		for (let container of set.containers) {
-			let splitAmount = Math.floor(amountNeededWeekly * (container.percentage * 0.01))
-			amounts.push(splitAmount)
-			remainder -= splitAmount
+			if (container.percentage !== undefined) {
+				let splitAmount = Math.floor(total * (container.percentage * 0.01))
+				amounts.push(splitAmount)
+				remainder -= splitAmount
+			}
 		}
 		for (let i = set.containers.length-1; remainder > 0; i--, remainder--) {
 			amounts[i] = amounts[i] + 1
@@ -198,11 +203,10 @@ function Inventory() {
 			splits.push(`${amounts[i]}${unit ? ` ${unit}` : ""} in the ${set.containers[i].name}`)
 		}
 		return splits
-	
 	}
+
 	// get container sets and inventory items on page load
 	useEffect(() => {
-		const item = searchParams.get('item')
 		getContainerSets().then((sets) => {
 			statelessContainerSets = sets
 			setContainerSets(sets)
@@ -224,12 +228,12 @@ function Inventory() {
 	// if the page URL changes while still on the page, like when switching from /add to /search, clear the inputs
 	useEffect(()=> {
 		updateInputs("")
-		setHaveAmount("")
-		setNeedAmount("")
-		setUnit("")
+		setHaveAmount(undefined)
+		setNeedAmount(undefined)
+		setUnit(undefined)
 		setCheckWeekly(false)
-		setAmountNeededWeekly("")
-		setSelectedContainerSet(null)
+		setAmountNeededWeekly(undefined)
+		setSelectedContainerSet(undefined)
 		setEditing(false)
 	}, [location])
 
@@ -237,13 +241,22 @@ function Inventory() {
 		{/* if the server returned a response and doesn't indicate the user not having permissions, render inputs */}
 		{serverData && serverData[0]!=="You don't have permissions for that!" ? <div>
 			{/* if the have and needed amounts are loaded in, render */}
-			{((haveAmount !== undefined && needAmount !== undefined)) && <div className="flex flex-col items-center mt-2 select-none">
+			<div className="flex flex-col items-center mt-2 select-none">
 				<div className="mb-2">
 					{/* search box for items */}
-					<input id="searchInput" readOnly={editing ? true : false} className={"w-72 pl-1 bg-oatnet-foreground rounded-lg select-none"+(!inputValidityMap.searchInput && " bg-oatnet-invalid text-oatnet-text-dark placeholder-oatnet-placeholder-dark")}  placeholder={addingNewItem ? 'Oats, Soap, Socks, etc.' : 'Search'} value={searchQuery ? searchQuery:""} list="searchResults" autoComplete="off" onChange={ e => {
-						setInputValidityMap({...inputValidityMap, "searchInput":true})
-						updateInputs(e.target.value)
-					}}/>
+					<input
+						id="searchInput"
+						readOnly={editing ? true : false}
+						className={"w-72 pl-1 bg-oatnet-foreground rounded-lg select-none"+(!inputValidityMap.searchInput && " bg-oatnet-invalid text-oatnet-text-dark placeholder-oatnet-placeholder-dark")}
+						placeholder={addingNewItem ? 'Oats, Soap, Socks, etc.' : 'Search'}
+						value={searchQuery ? searchQuery:""}
+						list="searchResults"
+						autoComplete="off"
+						onChange={ e => {
+							setInputValidityMap({...inputValidityMap, "searchInput":true})
+							updateInputs(e.target.value)
+						}}
+					/>
 					{/* the datalist is populated with search results based on the text in the input */}
 					{searchSuggestionsEnabled && <datalist id="searchResults">
 						{serverData && serverData.map((row) => {
@@ -253,7 +266,7 @@ function Inventory() {
 				</div>
 				{!!(selectedContainerSet && amountNeededWeekly) && <div className="px-1 mt-2 mb-2 border-solid border-4 border-oatnet-foreground rounded-lg text-center">
 					<div>{"To restock this, make sure there are:"}</div>
-					{createSplitDirections(selectedContainerSet).map((split) => {
+					{createSplitDirections(selectedContainerSet, amountNeededWeekly).map((split: string) => {
 						return <div key={split}>{split}</div>
 					})}
 				</div>}
@@ -263,19 +276,35 @@ function Inventory() {
 				{/* text input for the have property */}
 				<div className="mt-2 mb-2 max-w-68 flex">
 					<div className="">Have:</div>
-					<input id="haveInput" className={"w-16 h-6 pl-1 ml-1 bg-oatnet-foreground rounded-lg select-none"+(!inputValidityMap.haveInput && " bg-oatnet-invalid text-oatnet-text-dark placeholder-oatnet-placeholder-dark")} type="number" placeholder="16" value={haveAmount!==undefined ? haveAmount:""} autoComplete="off" onChange={e => {
-						setInputValidityMap({...inputValidityMap, "haveInput":true})
-						setHaveAmount(isNaN(parseFloat(e.target.value)) ? "" : parseFloat(e.target.value))
-					}}/>
+					<input
+						id="haveInput"
+						className={"w-16 h-6 pl-1 ml-1 bg-oatnet-foreground rounded-lg select-none"+(!inputValidityMap.haveInput && " bg-oatnet-invalid text-oatnet-text-dark placeholder-oatnet-placeholder-dark")}
+						type="number"
+						placeholder="16"
+						value={haveAmount!==undefined ? haveAmount:""}
+						autoComplete="off"
+						onChange={e => {
+							setInputValidityMap({...inputValidityMap, "haveInput":true})
+							setHaveAmount(isNaN(parseFloat(e.target.value)) ? undefined : parseFloat(e.target.value))
+						}}
+					/>
 					<div className="w-auto ml-1">{unit}</div>
 				</div>
 				{/* text input for the need property */}
 				<div className="mt-2 mb-2 max-w-68 flex">
 					<div className="">Need:</div>
-					<input id="needInput" className={"w-16 h-6 pl-1 ml-1 bg-oatnet-foreground rounded-lg select-none"+(!inputValidityMap.needInput && " bg-oatnet-invalid text-oatnet-text-dark placeholder-oatnet-placeholder-dark")} type="number" placeholder="16" value={needAmount!==undefined ? needAmount:""} autoComplete="off" onChange={ e => {
-						setInputValidityMap({...inputValidityMap, "needInput":true})
-						setNeedAmount(isNaN(parseFloat(e.target.value)) ? "" : parseFloat(e.target.value))
-					}}/>
+					<input
+						id="needInput"
+						className={"w-16 h-6 pl-1 ml-1 bg-oatnet-foreground rounded-lg select-none"+(!inputValidityMap.needInput && " bg-oatnet-invalid text-oatnet-text-dark placeholder-oatnet-placeholder-dark")}
+						type="number"
+						placeholder="16"
+						value={needAmount!==undefined ? needAmount:""}
+						autoComplete="off"
+						onChange={ e => {
+							setInputValidityMap({...inputValidityMap, "needInput":true})
+							setNeedAmount(isNaN(parseFloat(e.target.value)) ? undefined : parseFloat(e.target.value))
+						}}
+					/>
 					<div className="w-auto ml-1">{unit}</div>
 				</div>
 				{/* this section is only shown when adding items, replacing the settings panel so all options are shown*/}
@@ -283,10 +312,17 @@ function Inventory() {
 					{/* input to set the units of an item */}
 					<div className="mt-2 mb-2">
 						<div className="float-left">Unit (Plural):</div>
-						<input id="unitInput" className={"w-36 pl-1 ml-1 bg-oatnet-foreground rounded-lg select-none"+(!inputValidityMap.unitInput && " bg-oatnet-invalid text-oatnet-text-dark placeholder-oatnet-placeholder-dark")} placeholder="pairs, oz, etc." value={unit!==undefined ? unit:""} autoComplete="off" onChange={e => {
-							setInputValidityMap({...inputValidityMap, "unitInput":true})
-							setUnit(e.target.value)
-						}}/>
+						<input
+							id="unitInput"
+							className={"w-36 pl-1 ml-1 bg-oatnet-foreground rounded-lg select-none"+(!inputValidityMap.unitInput && " bg-oatnet-invalid text-oatnet-text-dark placeholder-oatnet-placeholder-dark")}
+							placeholder="pairs, oz, etc."
+							value={unit!==undefined ? unit:""}
+							autoComplete="off"
+							onChange={e => {
+								setInputValidityMap({...inputValidityMap, "unitInput":true})
+								setUnit(e.target.value)
+							}}
+						/>
 					</div>
 					{/* dropdown to select the container set that the item belongs to */}
 					<div className="flex mt-2 mb-2">
@@ -295,9 +331,10 @@ function Inventory() {
 							className="px-1 bg-oatnet-foreground rounded rounded-lg"
 							value={selectedContainerSet && selectedContainerSet.name ? selectedContainerSet.name : ""}
 							onInput={(e) => {
-								setSelectedContainerSet(containerSets.find((set) => {
-									return set.name === e.target.value
-								}))
+								if (containerSets)
+									setSelectedContainerSet(containerSets.find((set) => {
+										return set.name === e.currentTarget.value
+									}))
 							}}
 						>
 							<option value="">Not Applicable</option>
@@ -332,7 +369,7 @@ function Inventory() {
 							value={amountNeededWeekly!==undefined ? amountNeededWeekly:""}
 							autoComplete="off"
 							onChange={e => {
-								setAmountNeededWeekly(isNaN(parseFloat(e.target.value)) ? "" : parseFloat(e.target.value))
+								setAmountNeededWeekly(isNaN(parseFloat(e.currentTarget.value)) ? undefined : parseFloat(e.currentTarget.value))
 							}}
 						/>
 					</div>}
@@ -342,7 +379,7 @@ function Inventory() {
 				{/* button to submit data to the backend */}
 				<button id="submitButton" className="mt-4 ml-2 w-40 h-8 bg-oatnet-foreground rounded-lg" onClick={() => {
 					// if required inputs are filled, submit item
-					if(searchQuery != "" && haveAmount !== "" && needAmount !== "" && unit != ""){
+					if(searchQuery !== undefined && haveAmount !== undefined && needAmount !== undefined && unit != undefined){
 						if(searchParams.get("item"))
 							setServerData(undefined)
 						postInventory({
@@ -351,32 +388,32 @@ function Inventory() {
 							need: needAmount,
 							unit: unit,
 							checkWeekly: checkWeekly,
-							amountNeededWeekly: amountNeededWeekly && amountNeededWeekly !== "" ? amountNeededWeekly : 0,
+							amountNeededWeekly: amountNeededWeekly !== undefined ? amountNeededWeekly : 0,
 							assignedSet: selectedContainerSet && selectedContainerSet.name ? selectedContainerSet.name : null
 						}).then(()=>{
 							// if there's a filter on this URL, the user should be sent back to the reports page
 							if(searchParams.get("item"))
 								navigate("/report")
 							updateInputs("")
-							setHaveAmount("")
-							setNeedAmount("")
-							setUnit("")
+							setHaveAmount(undefined)
+							setNeedAmount(undefined)
+							setUnit(undefined)
 							setCheckWeekly(false)
-							setAmountNeededWeekly("")
-							setSelectedContainerSet(null)
+							setAmountNeededWeekly(undefined)
+							setSelectedContainerSet(undefined)
 							setEditing(false)
 						})
 					}
 					// if a required input is invalid, update the validity map entry for that input so it's updated accordingly
 					else {
 						let inputValidityMapLocal = {...inputValidityMap}
-						if (searchQuery === "")
+						if (searchQuery === undefined)
 							inputValidityMapLocal = {...inputValidityMapLocal, "searchInput":false}
-						if (haveAmount === "")
+						if (haveAmount === undefined)
 							inputValidityMapLocal = {...inputValidityMapLocal, "haveInput":false}
-						if (needAmount === "")
+						if (needAmount === undefined)
 							inputValidityMapLocal = {...inputValidityMapLocal, "needInput":false}
-						if (unit === ""){
+						if (unit === undefined){
 							inputValidityMapLocal = {...inputValidityMapLocal, "unitInput":false}
 							setSettingsPanelOpen(true)
 						}
@@ -399,17 +436,32 @@ function Inventory() {
 						{/* input to set the units of an item */}
 						<div className="mt-2 mb-2">
 							<div className="float-left">Unit (Plural):</div>
-							<input id="unitInput" className={"w-36 pl-1 ml-1 bg-oatnet-foreground rounded-lg select-none"+(!inputValidityMap.unitInput && " bg-oatnet-invalid text-oatnet-text-dark placeholder-oatnet-placeholder-dark")} placeholder="pairs, oz, etc." value={unit!==undefined ? unit:""} autoComplete="off" onChange={e => {
-								setInputValidityMap({...inputValidityMap, "unitInput":true})
-								setUnit(e.target.value)
-							}}/>
+							<input
+								id="unitInput"
+								className={"w-36 pl-1 ml-1 bg-oatnet-foreground rounded-lg select-none"+(!inputValidityMap.unitInput && " bg-oatnet-invalid text-oatnet-text-dark placeholder-oatnet-placeholder-dark")}
+								placeholder="pairs, oz, etc."
+								value={unit!==undefined ? unit:""}
+								autoComplete="off"
+								onChange={e => {
+									setInputValidityMap({...inputValidityMap, "unitInput":true})
+									setUnit(e.currentTarget.value)
+								}}
+							/>
 						</div>
 						{/* input to set how many of an item we need to restock weekly */}
 						<div className="mt-2 mx-1 mb-2">
 							<div className="float-left">Needed Weekly:</div>
-							<input id="amountNeededWeeklyInput" className="w-32 ml-2 px-1 bg-oatnet-foreground rounded-lg" type="number" placeholder="16" value={amountNeededWeekly!==undefined ? amountNeededWeekly:""} autoComplete="off" onChange={e => {
-								setAmountNeededWeekly(isNaN(parseFloat(e.target.value)) ? "" : parseFloat(e.target.value))
-							}}/>
+							<input
+								id="amountNeededWeeklyInput"
+								className="w-32 ml-2 px-1 bg-oatnet-foreground rounded-lg"
+								type="number"
+								placeholder="16"
+								value={amountNeededWeekly!==undefined ? amountNeededWeekly:""}
+								autoComplete="off" 
+								onChange={e => {
+									setAmountNeededWeekly(isNaN(parseFloat(e.currentTarget.value)) ? undefined : parseFloat(e.currentTarget.value))
+								}}
+							/>
 						</div>
 						{/* checkbox to mark an item as one to check the status of weekly */}
 						<div className="flex items-center mt-1 mx-1 mb-2">
@@ -425,13 +477,18 @@ function Inventory() {
 						{/* dropdown to select the container set that the item belongs to */}
 						<div className="flex mt-2 mb-2">
 							<div className="shrink-0 mr-1">Container Set:</div>
-							<select className="px-1 bg-oatnet-foreground rounded rounded-lg" defaultValue={selectedContainerSet && selectedContainerSet.name ? selectedContainerSet.name : ""} onInput={(e) => {
-								setSelectedContainerSet(containerSets.find((set) => {
-									return set.name === e.target.value
-								}))
-							}}>
+							<select
+								className="px-1 bg-oatnet-foreground rounded rounded-lg"
+								defaultValue={selectedContainerSet && selectedContainerSet.name ? selectedContainerSet.name : ""}
+								onInput={(e) => {
+									if (containerSets)
+										setSelectedContainerSet(containerSets.find((set: ContainerSet) => {
+											return set.name === e.currentTarget.value
+										}))
+								}}
+							>
 								<option value="">Not Applicable</option>
-								{containerSets && containerSets.map((set:ContainerSet) => {
+								{containerSets && containerSets.map((set: ContainerSet) => {
 									return(<option value={set.name} key={set.name}>{set.name}</option>)
 								})}
 							</select>
@@ -447,16 +504,16 @@ function Inventory() {
 								})
 							}
 							updateInputs("")
-							setHaveAmount("")
-							setNeedAmount("")
-							setUnit("")
+							setHaveAmount(undefined)
+							setNeedAmount(undefined)
+							setUnit(undefined)
 							setCheckWeekly(false)
 						}}>
 							Delete
 						</button>
 					</div>}
 				</div>}
-			</div>}
+			</div>
 		{/* if the user doesn't have permissions, let them know */}
 		</div> : (serverData && serverData[0]==="You don't have permissions for that!") && <div className=" ml-8 mr-8 text-center">You don't have permissions to view this page! Please contact your Oatnet administrator for read and/or write permissions!</div>}
 	</>)

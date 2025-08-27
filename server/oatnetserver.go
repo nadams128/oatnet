@@ -23,9 +23,9 @@ import(
 	"github.com/nadams128/oatnet/server/logger"
 	"net/http"
 	"fmt"
-	//"bufio"
-	//"strings"
-	//"os"
+	"bufio"
+	"strings"
+	"os"
 	"context"
 	"github.com/jackc/pgx/v5"
 	"golang.org/x/crypto/bcrypt"
@@ -33,7 +33,7 @@ import(
 )
 
 func main() {
-	//reader := bufio.NewReader(os.Stdin)
+	reader := bufio.NewReader(os.Stdin)
 	logger.Clear()
 	fmt.Println("+-----------------------------------------------------------+")
 	fmt.Println("|                                                           |")

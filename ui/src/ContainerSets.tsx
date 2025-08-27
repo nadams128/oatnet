@@ -21,21 +21,10 @@ type ModalInputContainer = {
 	nameIsInvalid : boolean
 }
 
-export async function getContainerSets(containerSetName:string): ContainerSet | ContainerSet[] {
+export async function getContainerSets(): Promise<ContainerSet[]> {
 	let response: any
 	let sessionID = localStorage.getItem("sessionID")
 	if (sessionID) {
-//		if (containerSetName) {
-//			response = await fetch(serverDomain+"/containersets?container="+containerSetName, {
-//				method: "GET",
-//				headers: {
-//					"sessionID": sessionID
-//				}
-//			})
-//			let containerSet: ContainerSet = response.json()
-//			return containerSet
-//		}
-//		else {
 		response = await fetch(serverDomain+"/containersets", {
 			method: "GET",
 			headers: {
@@ -44,7 +33,9 @@ export async function getContainerSets(containerSetName:string): ContainerSet | 
 		})
 		let containerSets: ContainerSet[] = response.json()
 		return containerSets
-//		}
+	}
+	else {
+		return new Response().json()
 	}
 }
 
@@ -59,12 +50,9 @@ async function postContainerSet(containerSet: ContainerSet) {
 			body: JSON.stringify(containerSet)
 		})
 	}
-	else {
-		return "No session ID"
-	}
 }
 
-async function deleteContainerSet(containerSetName:string) {
+async function deleteContainerSet(containerSetName: string) {
 	let sessionID = localStorage.getItem("sessionID")
 	if (sessionID) {
 		await fetch(serverDomain+"/containersets?container="+containerSetName, {
@@ -73,9 +61,6 @@ async function deleteContainerSet(containerSetName:string) {
 				"sessionID": sessionID
 			}
 		})
-	}
-	else {
-		return "No session ID"
 	}
 }
 
@@ -91,6 +76,7 @@ function ContainerSets(){
 		CONTAINERNAME: "check that all containers have names",
 		PERCENTAGES: "check that all percentages total 100%"
 	}
+
 	function hideModal() {
 		setNewSetName("")
 		setPreviousSetName(undefined)
@@ -98,8 +84,9 @@ function ContainerSets(){
 		setInvalidMessages({})
 		setShowModal(false)
 	}
+
 	useEffect(() => {
-		getContainerSets().then((response) => {
+		getContainerSets().then((response: ContainerSet[]) => {
 			let serverSets : ContainerSet[] = []
 			for (let set of response) {
 				serverSets.push({name: set.name, containers: set.containers})
@@ -107,6 +94,7 @@ function ContainerSets(){
 			setContainerSets(serverSets)
 		})
 	}, [])
+
 	return(<>
 		{containerSets && 
 			<div className="flex flex-col items-center">
@@ -126,7 +114,7 @@ function ContainerSets(){
 							</tr>
 						</thead>
 						<tbody className="bg-oatnet-foreground">
-							{containerSets.map((set) => {
+							{containerSets.map((set: ContainerSet, i: number) => {
 								let containerNamesCombined
 								for (let container of set.containers) {
 									if (!containerNamesCombined) {
@@ -136,7 +124,7 @@ function ContainerSets(){
 									}
 								}
 								return(
-									<tr key={`row-${set.name}`} onClick={() => {
+									<tr key={`row-${set.name}-${i}`} onClick={() => {
 										setNewSetName(set.name)
 										setPreviousSetName(set.name)
 										let convertedContainers : ModalInputContainer[] = []
@@ -193,8 +181,8 @@ function ContainerSets(){
 				<tbody>
 					{/* for each row of data returned, generate the rows and data cells */}
 					{newSetContainers.map((container, i) => {
-						let nameInputInvalid = invalidMessages[invalidMessageOptions.CONTAINERNAME] !== undefined && container.nameIsInvalid
-						let percentageInvalid = invalidMessages[invalidMessageOptions.PERCENTAGES] !== undefined && container.percentage
+						let nameInputInvalid = !!(invalidMessages[invalidMessageOptions.CONTAINERNAME] !== undefined && container.nameIsInvalid)
+						let percentageInvalid = !!(invalidMessages[invalidMessageOptions.PERCENTAGES] !== undefined && container.percentage)
 						return(
 							<tr key={`row-${i}`}>
 								<td key={`name-${i}`} className="border-b border-r border-oatnet-text border-solid">
@@ -218,23 +206,21 @@ function ContainerSets(){
 									<div className="flex justify-center mx-1 my-1">
 										<Input
 											className="max-w-10 min-w-10 appearance-none"
-											defaultValue={container.percentage ? container.percentage : ""}
+											value={container.percentage ? container.percentage : ""}
 											type="number"
 											invalid={percentageInvalid}
 											onChange={ e => {
 												let convertedInput = parseInt(e.target.value)
 												let localNewSetContainers = [...newSetContainers]
-												if (convertedInput !== NaN) {
-													if (i == newSetContainers.length - 1 && !container.percentage && container.name !== "") {
-														localNewSetContainers.push({name:"", percentage:undefined, nameIsInvalid: false})
-													}
+												if (i == newSetContainers.length - 1 && !container.percentage && container.name !== "") {
+													localNewSetContainers.push({name:"", percentage:undefined, nameIsInvalid: false})
+												}
+												if (invalidMessages[invalidMessageOptions.PERCENTAGES]) {
 													let localInvalidMessages = {...invalidMessages}
 													delete localInvalidMessages[invalidMessageOptions.PERCENTAGES]
 													setInvalidMessages(localInvalidMessages)
-													localNewSetContainers[i] = {name: newSetContainers[i].name, percentage: convertedInput, nameIsInvalid: newSetContainers[i].nameIsInvalid}
-												} else {
-													localNewSetContainers[i] = {name: newSetContainers[i].name, percentage: undefined}
 												}
+												localNewSetContainers[i] = {name: newSetContainers[i].name, percentage: convertedInput, nameIsInvalid: newSetContainers[i].nameIsInvalid}
 												setNewSetContainers(localNewSetContainers)
 											}}
 										/>
@@ -249,7 +235,7 @@ function ContainerSets(){
 				<Button onClick={() => {
 					let localInvalidMessages = {...invalidMessages}
 					let localNewSetContainers = [...newSetContainers]
-					function handleInvalid(condition:boolean, message:string){
+					function handleInvalid(condition: boolean, message: string){
 						if (condition) {
 							localInvalidMessages[message] = null
 						} else {
@@ -258,8 +244,9 @@ function ContainerSets(){
 					}
 					let addedPercentages = 0
 					let allContainersAreNamed = true
-					let slicedNewSetContainers = []
-					localNewSetContainers.map((container, i) => {
+					let slicedNewSetContainers: Container[] = []
+					// run through containers and check that they're valid
+					localNewSetContainers.map((container: ModalInputContainer) => {
 						if (!(container.name === "" && !container.percentage)) {
 							if (container.name == "") {
 								allContainersAreNamed = false
@@ -277,21 +264,24 @@ function ContainerSets(){
 					handleInvalid(!allContainersAreNamed, invalidMessageOptions.CONTAINERNAME)
 					// if there are no invalid inputs, submit
 					if (Object.keys(localInvalidMessages).length === 0) {
-						let trimmedNewSetContainers : Containers[] = []
+						let trimmedNewSetContainers : Container[] = []
+						// trim modal specific properties
 						for (let container of slicedNewSetContainers) {
 							trimmedNewSetContainers.push({name: container.name, percentage: container.percentage})
 						}
+						let localContainerSets = [...containerSets]
+						// if the set's new name is the same as the previous, replace the existing set in place
 						if (newSetName === previousSetName) {
-							let localContainerSets = [...containerSets]
-							localContainerSets.splice((set) => { set.name === newSetName }, 1, {name: newSetName, containers: trimmedNewSetContainers})
+							localContainerSets.splice(localContainerSets.findIndex((set: ContainerSet) => set.name === newSetName ), 1, {name: newSetName, containers: trimmedNewSetContainers})
 							setContainerSets(localContainerSets)
-						} else {
-							let localContainerSets = [...containerSets]
+						} 
+						// if it isn't, add the new/replacement set, remove the old set if it exists, and resort the list
+						else {
 							localContainerSets.push({name: newSetName, containers: trimmedNewSetContainers})
 							let previousSetNameIndex = localContainerSets.findIndex((set) => { 
 								return set.name === previousSetName
 							})
-							if (previousSetNameIndex > 0) {
+							if (previousSetNameIndex >= 0) {
 								localContainerSets.splice(previousSetNameIndex, 1)
 							}
 							localContainerSets.sort((a:ContainerSet, b:ContainerSet) => {
@@ -304,6 +294,8 @@ function ContainerSets(){
 							})
 							setContainerSets(localContainerSets)
 						}
+						if (previousSetName !== undefined)
+							deleteContainerSet(previousSetName)
 						postContainerSet({name: newSetName, containers: trimmedNewSetContainers}).then(() => {
 							hideModal()
 						})
