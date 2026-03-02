@@ -65,9 +65,9 @@ function App({children}:any) {
 						MENU
 					</div>
 					<div className="flex flex-row justify-between items-center">
-						<Link to="/report"><img className="w-11 h-11 p-1 mr-1" src="/assets/document.svg"/></Link>
-						<Link to="/search"><img className="w-11 h-11 p-1 mr-1" src="/assets/oatnet-magnifying-glass.svg"/></Link>
-						<Link to="/add"><img className="w-11 h-11 p-1 mr-1" src="/assets/oatnet-plus.svg"/></Link>
+						<Link to="/report" aria-label="Report"><img className="w-11 h-11 p-1 mr-1" src="/assets/document.svg"/></Link>
+						<Link to="/search" aria-label="Search"><img className="w-11 h-11 p-1 mr-1" src="/assets/oatnet-magnifying-glass.svg"/></Link>
+						<Link to="/add" aria-label="Add"><img className="w-11 h-11 p-1 mr-1" src="/assets/oatnet-plus.svg"/></Link>
 						<img className="w-12 h-12" src="/assets/kropotkin_spin_tilt_small.gif"/>
 					</div>
 				</div>

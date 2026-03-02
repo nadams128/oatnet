@@ -66,7 +66,7 @@ function Login() {
 			
 			{/* text input for the username property */}
 			{!loggedIn && <div className="mt-6">
-				<div className="w-24 float-left">Username: </div>
+				<label className="float-left mr-2" for="usernameBox">Username:</label>
 				<input id="usernameBox" className="w-48 pl-1 bg-oatnet-foreground rounded-lg" placeholder='oat200' value={username ? username:""} onChange={e => {
 					setUsername(e.target.value)
 				}}/>
@@ -74,7 +74,7 @@ function Login() {
 
 			{/* text input for the password property */}
 			{!loggedIn && <div className="mt-4">
-				<div className="w-24 float-left">Password: </div>
+				<label className="float-left mr-2" for="passwordBox">Password:</label>
 				<input id="passwordBox" type="password" className="w-48 pl-1 bg-oatnet-foreground rounded-lg" placeholder='123password321' value={password ? password:""} onChange={ e =>{
 					setPassword(e.target.value)
 				}}/>
@@ -82,7 +82,7 @@ function Login() {
 
 			{/* text input for password confirmation on registration*/}
 			{!localStorage.getItem("username") && <div className="mt-4">
-				<div className="w-20 float-left">Confirm: </div>
+				<label className="float-left mr-2" for="passwordConfirmBox">Confirm:</label>
 				<input id="passwordConfirmBox" type="password" className={passwordsMatch ? "w-48 pl-1 bg-oatnet-foreground rounded-lg" : "w-48 text-black pl-1 bg-red-400 rounded-lg"} placeholder='123password321' value={passwordConfirmation ? passwordConfirmation:""} onChange={ e =>{
 					setPasswordConfirmation(e.target.value)
 					setpasswordsMatch(true)

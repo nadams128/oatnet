@@ -328,7 +328,7 @@ function Inventory() {
 					<div className="flex mt-2 mb-2">
 						<div className="shrink-0 mr-1">Container Set:</div>
 						<select
-							className="px-1 bg-oatnet-foreground rounded rounded-lg"
+							className="px-1 bg-oatnet-foreground rounded rounded-lg max-w-40"
 							value={selectedContainerSet && selectedContainerSet.name ? selectedContainerSet.name : ""}
 							onInput={(e) => {
 								if (containerSets)
@@ -478,7 +478,7 @@ function Inventory() {
 						<div className="flex mt-2 mb-2">
 							<div className="shrink-0 mr-1">Container Set:</div>
 							<select
-								className="px-1 bg-oatnet-foreground rounded rounded-lg"
+								className="px-1 bg-oatnet-foreground rounded rounded-lg max-w-36"
 								defaultValue={selectedContainerSet && selectedContainerSet.name ? selectedContainerSet.name : ""}
 								onInput={(e) => {
 									if (containerSets)

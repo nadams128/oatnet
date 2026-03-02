@@ -49,7 +49,6 @@ const router = createBrowserRouter(createRoutesFromElements(
 		/>
 		<Route
 			path = "/inventory"
-			key=""
 			element = {<Inventory/>}
 		/>
 		<Route
